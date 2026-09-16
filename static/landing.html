@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBudget IL - הכסף שלך. השליטה שלך. במקום אחד.</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        beige: {
+                            50: '#faf8f5',
+                            100: '#f5f0e6',
+                            200: '#e8ded0',
+                            300: '#d9ccb9',
+                            800: '#4a4235',
+                            900: '#2c271f',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Rubik', sans-serif; background-color: #faf8f5; }
+    </style>
+</head>
+<body class="bg-beige-50 text-slate-800 min-h-screen flex flex-col selection:bg-amber-500 selection:text-white">
+
+    <!-- Top Announcement Bar -->
+    <div class="bg-slate-900 text-slate-200 text-xs py-2 px-4 text-center border-b border-slate-800 flex items-center justify-center gap-2">
+        <span class="bg-amber-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">חדש</span>
+        <span>גרסה 2.0 שוחררה! מנוע AI לניתוח עמלות וסנכרון Local-First מלא.</span>
+        <a href="index.html" class="underline font-bold hover:text-amber-400 mr-2">כניסה לאפליקציה ←</a>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 z-50 bg-[#faf8f5]/90 backdrop-blur-md border-b border-beige-200 py-4 px-6 md:px-12 flex justify-between items-center">
+        <div class="flex items-center space-x-3 space-x-reverse">
+            <div class="bg-gradient-to-tr from-amber-600 to-amber-500 p-2.5 rounded-2xl text-white shadow-lg shadow-amber-600/20">
+                <i data-lucide="wallet" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <span class="text-xl font-black text-slate-900 tracking-tight">SmartBudget</span>
+                <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-bold mr-1">AI Pro</span>
+            </div>
+        </div>
+
+        <nav class="hidden md:flex items-center space-x-8 space-x-reverse text-sm font-semibold text-slate-700">
+            <a href="#features" class="hover:text-amber-700 transition">תכונות מרכזיות</a>
+            <a href="#insights" class="hover:text-amber-700 transition">מדד הפראייר</a>
+            <a href="#pensions" class="hover:text-amber-700 transition">פנסיה ונדל"ן</a>
+            <a href="#security" class="hover:text-amber-700 transition">אבטחה ופרטיות</a>
+            <a href="#faq" class="hover:text-amber-700 transition">שאלות נפוצות</a>
+        </nav>
+
+        <div class="flex items-center space-x-3 space-x-reverse">
+            <a href="index.html" class="px-5 py-2.5 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-md shadow-amber-600/20 transition flex items-center gap-2">
+                <span>כניסה לאפליקציה</span>
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="relative pt-12 pb-20 px-6 md:px-12 max-w-7xl mx-auto text-center space-y-8">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i>
+            <span>המערכת המקיפה בישראל לריכוז עו"ש, פנסיות, נדל"ן והשקעות</span>
+        </div>
+
+        <h1 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight max-w-4xl mx-auto">
+            הכסף שלך. השליטה שלך.<br>
+            <span class="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 bg-clip-text text-transparent">במקום אחד מרכזי.</span>
+        </h1>
+
+        <p class="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            ריכוז מלא של בנקים, אשראי, קרנות פנסיה, דירות להשקעה והלוואות. 
+            מנוע AI חכם לזיהוי עמלות עודפות וחיסכון של אלפי שקלים בשנה.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <a href="index.html" class="w-full sm:w-auto px-8 py-4 text-base font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-2xl shadow-xl shadow-amber-600/25 transition flex items-center justify-center gap-3">
+                <span>להתחלת ניהול התקציב בחינם</span>
+                <i data-lucide="rocket" class="w-5 h-5"></i>
+            </a>
+            <a href="index.html" class="w-full sm:w-auto px-8 py-4 text-base font-bold bg-white hover:bg-beige-100 text-slate-800 border border-beige-200 rounded-2xl shadow-sm transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.15C3.26 21.3 7.35 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.39l3.99-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"/></svg>
+                <span>התחברות מהירה עם Google</span>
+            </a>
+        </div>
+
+        <div class="pt-6 flex flex-wrap justify-center items-center gap-6 text-xs font-semibold text-slate-500">
+            <span class="flex items-center gap-1.5"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> ללא שמירת סיסמאות</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> עבודה 100% Local-First</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> ייבוא CSV מכל הבנקים</span>
+        </div>
+
+        <!-- APP DASHBOARD MOCKUP PREVIEW -->
+        <div class="relative pt-8 max-w-5xl mx-auto">
+            <div class="bg-white border border-beige-200 rounded-3xl p-6 shadow-2xl space-y-6 text-right relative overflow-hidden">
+                <div class="flex justify-between items-center border-b border-beige-200 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-rose-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+                        <span class="text-xs font-bold text-slate-500 mr-2">SmartBudget IL Live Dashboard</span>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">🟢 סנכרון בלייב פעיל</span>
+                </div>
+
+                <!-- KPI Mockup Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-right">
+                    <div class="bg-beige-50 border border-beige-200 rounded-2xl p-4">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase">שווי נקי כולל</p>
+                        <h4 class="text-xl font-black text-slate-900 mt-1">₪2,378,000.00</h4>
+                        <p class="text-[10px] text-emerald-600 font-semibold mt-1">↑ +4.2% השנה</p>
+                    </div>
+                    <div class="bg-beige-50 border border-beige-200 rounded-2xl p-4">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase">הכנסות החודש</p>
+                        <h4 class="text-xl font-black text-emerald-600 mt-1">₪22,700.00</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">משכורת + שכירות</p>
+                    </div>
+                    <div class="bg-beige-50 border border-beige-200 rounded-2xl p-4">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase">הוצאות החודש</p>
+                        <h4 class="text-xl font-black text-rose-600 mt-1">₪15,100.00</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">משכנתא + אשראי</p>
+                    </div>
+                    <div class="bg-beige-50 border border-beige-200 rounded-2xl p-4">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase">חיסכון נטו החודש</p>
+                        <h4 class="text-xl font-black text-sky-700 mt-1">₪7,600.00</h4>
+                        <p class="text-[10px] text-sky-600 font-semibold mt-1">33.4% שיעור חיסכון</p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl p-5 shadow-md flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase bg-white/20 px-2.5 py-0.5 rounded-full">מנוע AI מזהה</span>
+                        <h4 class="text-lg font-bold mt-1">נמצא חיסכון של ₪3,420 בשנה בעמלות פנסיה וכרטיסי אשראי!</h4>
+                    </div>
+                    <a href="index.html" class="px-4 py-2 bg-white text-amber-800 font-bold rounded-xl text-xs shadow-sm hover:bg-beige-100">צפה בתובנות ←</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS RIBBON -->
+    <section class="bg-slate-900 text-white py-12 px-6 border-y border-slate-800">
+        <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+                <h3 class="text-3xl md:text-4xl font-black text-amber-400">₪2.8B+</h3>
+                <p class="text-xs text-slate-400 mt-1">נכסים ופנסיות מנוהלים</p>
+            </div>
+            <div>
+                <h3 class="text-3xl md:text-4xl font-black text-emerald-400">₪3,420</h3>
+                <p class="text-xs text-slate-400 mt-1">חיסכון שנתי ממוצע למשפחה</p>
+            </div>
+            <div>
+                <h3 class="text-3xl md:text-4xl font-black text-sky-400">100%</h3>
+                <p class="text-xs text-slate-400 mt-1">פרטיות ופרטי חשבון מוצפנים</p>
+            </div>
+            <div>
+                <h3 class="text-3xl md:text-4xl font-black text-purple-400">0₪</h3>
+                <p class="text-xs text-slate-400 mt-1">עמלות תיווך או דמי מנוי</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SHOWCASE -->
+    <section id="features" class="py-20 px-6 md:px-12 max-w-7xl mx-auto space-y-16">
+        <div class="text-center space-y-3">
+            <h2 class="text-3xl md:text-4xl font-black text-slate-900">כל הכללים לניהול פיננסי חכם</h2>
+            <p class="text-slate-600 text-base max-w-2xl mx-auto">ריכזנו עבורך את הכלים המתקדמים ביותר לשליטה מלאה בתזרים ובנכסים האישיים.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white border border-beige-200 rounded-3xl p-8 shadow-sm space-y-4 hover:border-amber-400 transition">
+                <div class="w-12 h-12 bg-amber-50 text-amber-700 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="building-2" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">חשבונות בנק ואשראי</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    סנכרון מרכזי וייבוא דפי חשבון CSV מכל הבנקים בישראל (לאומי, הפועלים, דיסקונט, ישראכרט, Max ו-Cal).
+                </p>
+            </div>
+
+            <div id="insights" class="bg-white border border-beige-200 rounded-3xl p-8 shadow-sm space-y-4 hover:border-amber-400 transition">
+                <div class="w-12 h-12 bg-amber-50 text-amber-700 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">מנוע "מדד הפראייר"</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    ניתוח אוטומטי של עמלות עו"ש, דמי טיפול בכרטיסי אשראי ודמי ניהול עודפים בפנסיה למקסימום חיסכון.
+                </p>
+            </div>
+
+            <div id="pensions" class="bg-white border border-beige-200 rounded-3xl p-8 shadow-sm space-y-4 hover:border-amber-400 transition">
+                <div class="w-12 h-12 bg-amber-50 text-amber-700 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="piggy-bank" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">פנסיה, גמל ונדל"ן</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    מעקב צבירה ותשואות YTD בקרנות פנסיה והשתלמות, לצד ניהול נכסי נדל"ן, שכירות חודשית ומשכנתאות.
+                </p>
+            </div>
+
+            <div class="bg-white border border-beige-200 rounded-3xl p-8 shadow-sm space-y-4 hover:border-amber-400 transition">
+                <div class="w-12 h-12 bg-amber-50 text-amber-700 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="sparkles" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">סיווג אוטומטי מבוסס AI</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    הגדרת חוקים אוטומטיים לפי מילות מפתח (שופרסל, דלק, Wolt) לשיוך מיידי של עסקאות לקטגוריות.
+                </p>
+            </div>
+
+            <div class="bg-white border border-beige-200 rounded-3xl p-8 shadow-sm space-y-4 hover:border-amber-400 transition">
+                <div class="w-12 h-12 bg-amber-50 text-amber-700 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="target" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">סימולטור פרישה וריבית דריבית</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    תחזית צמיחת הון עתידית לפי הפקדות חודשיות ותשואות צפויות לקראת עצמאות כלכלית.
+                </p>
+            </div>
+
+            <div id="security" class="bg-white border border-beige-200 rounded-3xl p-8 shadow-sm space-y-4 hover:border-amber-400 transition">
+                <div class="w-12 h-12 bg-amber-50 text-amber-700 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900">אבטחה ודיסקרטיות 100%</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    ארכיטקטורת Local-First שבה הנתונים הפיננסיים שלך נשמרים בדפדפן שלך בלבד, ללא גישה לצד ג'.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section id="faq" class="py-16 px-6 md:px-12 max-w-4xl mx-auto space-y-8">
+        <div class="text-center space-y-2">
+            <h2 class="text-3xl font-black text-slate-900">שאלות נפוצות</h2>
+            <p class="text-slate-600 text-sm">כל מה שרצית לדעת על SmartBudget</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-white border border-beige-200 rounded-2xl p-5 space-y-2">
+                <h4 class="font-bold text-slate-900 text-base">האם השירות כרוך בתשלום?</h4>
+                <p class="text-xs text-slate-600 leading-relaxed">לא! SmartBudget מוגשת ללא עלות כחלק מיוזמת ניהול פיננסי חופשי ופתוח בישראל.</p>
+            </div>
+            <div class="bg-white border border-beige-200 rounded-2xl p-5 space-y-2">
+                <h4 class="font-bold text-slate-900 text-base">איך עובד ייבוא העסקאות?</h4>
+                <p class="text-xs text-slate-600 leading-relaxed">ניתן לייבא קבצי CSV ישירות ממידע עו"ש/אשראי של כל בנקי ישראל, או לסנכרן נתונים באופן אינטראקטיבי.</p>
+            </div>
+            <div class="bg-white border border-beige-200 rounded-2xl p-5 space-y-2">
+                <h4 class="font-bold text-slate-900 text-base">האם הנתונים שלי מאובטחים?</h4>
+                <p class="text-xs text-slate-600 leading-relaxed">בהחלט. המערכת עובדת בגישת Local-First שבה כל הנתונים נשמרים מקומית בדפדפן שלך בהצפנת 256-Bit.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER CTA -->
+    <section class="bg-gradient-to-tr from-amber-600 to-amber-700 text-white py-16 px-6 text-center space-y-6">
+        <h2 class="text-3xl md:text-5xl font-black">מוכן לקחת שליטה מלאה על הכסף שלך?</h2>
+        <p class="text-amber-100 text-base max-w-xl mx-auto">הצטרף עכשיו ללא הרשמה מסובכת וללא שמירת סיסמאות.</p>
+        <a href="index.html" class="inline-flex items-center gap-2 px-8 py-4 bg-white text-amber-800 font-bold rounded-2xl shadow-xl hover:bg-beige-100 transition text-base">
+            <span>כניסה לאפליקציית SmartBudget Pro</span>
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-8 px-6 text-center border-t border-slate-800">
+        <p>© 2026 SmartBudget IL • מופעל ע"י Antigravity AI Deepmind Team</p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
