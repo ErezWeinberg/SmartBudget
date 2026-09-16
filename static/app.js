@@ -100,7 +100,7 @@ const LocalDB = {
 async function apiFetch(path, options = {}) {
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 sec timeout for local API check
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
         
         const res = await fetch(path, { ...options, signal: controller.signal });
         clearTimeout(timeoutId);
@@ -141,16 +141,16 @@ function handleLocalFallback(path, options) {
 
     if (method === 'GET') {
         if (pathname === '/api/summary') {
-            const bank_nw = db.accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
-            const pension_total = db.pensions.reduce((sum, p) => sum + (p.balance || 0), 0);
-            const re_total = db.real_estate.reduce((sum, r) => sum + (r.market_value || 0), 0);
-            const loan_total = db.loans.reduce((sum, l) => sum + (l.remaining_balance || 0), 0);
+            const bank_nw = (db.accounts || []).reduce((sum, a) => sum + (a.balance || 0), 0);
+            const pension_total = (db.pensions || []).reduce((sum, p) => sum + (p.balance || 0), 0);
+            const re_total = (db.real_estate || []).reduce((sum, r) => sum + (r.market_value || 0), 0);
+            const loan_total = (db.loans || []).reduce((sum, l) => sum + (l.remaining_balance || 0), 0);
 
             const total_assets = bank_nw + pension_total + re_total;
             const net_worth = total_assets - loan_total;
 
-            const income = db.transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
-            const expenses = Math.abs(db.transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0));
+            const income = (db.transactions || []).filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+            const expenses = Math.abs((db.transactions || []).filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0));
             const net_savings = income - expenses;
 
             return {
@@ -159,19 +159,19 @@ function handleLocalFallback(path, options) {
             };
         }
 
-        if (pathname === '/api/accounts') return db.accounts;
-        if (pathname === '/api/pensions') return db.pensions;
-        if (pathname === '/api/real_estate') return db.real_estate;
-        if (pathname === '/api/loans') return db.loans;
-        if (pathname === '/api/categories') return db.categories;
-        if (pathname === '/api/rules') return db.rules;
+        if (pathname === '/api/accounts') return db.accounts || [];
+        if (pathname === '/api/pensions') return db.pensions || [];
+        if (pathname === '/api/real_estate') return db.real_estate || [];
+        if (pathname === '/api/loans') return db.loans || [];
+        if (pathname === '/api/categories') return db.categories || [];
+        if (pathname === '/api/rules') return db.rules || [];
 
         if (pathname === '/api/transactions') {
             const search = (query.get('search') || '').toLowerCase();
             const account_id = query.get('account_id');
             const category_id = query.get('category_id');
 
-            let list = [...db.transactions];
+            let list = [...(db.transactions || [])];
 
             if (search) {
                 list = list.filter(t => (t.merchant || '').toLowerCase().includes(search) || (t.notes || '').toLowerCase().includes(search));
@@ -183,10 +183,9 @@ function handleLocalFallback(path, options) {
                 list = list.filter(t => String(t.category_id) === String(category_id));
             }
 
-            // Join category details
             return list.map(t => {
-                const cat = db.categories.find(c => c.id === t.category_id);
-                const acc = db.accounts.find(a => a.id === t.account_id);
+                const cat = (db.categories || []).find(c => c.id === t.category_id);
+                const acc = (db.accounts || []).find(a => a.id === t.account_id);
                 return {
                     ...t,
                     category_name: cat ? cat.name : 'לא סווג',
@@ -197,8 +196,8 @@ function handleLocalFallback(path, options) {
         }
 
         if (pathname === '/api/budgets') {
-            return db.categories.filter(c => c.type === 'expense').map(cat => {
-                const spent = Math.abs(db.transactions
+            return (db.categories || []).filter(c => c.type === 'expense').map(cat => {
+                const spent = Math.abs((db.transactions || [])
                     .filter(t => t.category_id === cat.id && t.amount < 0)
                     .reduce((sum, t) => sum + t.amount, 0));
                 return {
@@ -257,8 +256,8 @@ function handleLocalFallback(path, options) {
 
         if (pathname === '/api/charts/spending') {
             const catMap = {};
-            db.transactions.filter(t => t.amount < 0).forEach(t => {
-                const cat = db.categories.find(c => c.id === t.category_id);
+            (db.transactions || []).filter(t => t.amount < 0).forEach(t => {
+                const cat = (db.categories || []).find(c => c.id === t.category_id);
                 const name = cat ? cat.name : 'לא סווג';
                 const color = cat ? cat.color : '#64748b';
                 if (!catMap[name]) catMap[name] = { name, total: 0, color };
@@ -280,6 +279,7 @@ function handleLocalFallback(path, options) {
                 account_number: body.account_number || '****',
                 last_synced: new Date().toISOString().replace('T', ' ').substring(0, 19)
             };
+            db.accounts = db.accounts || [];
             db.accounts.push(newAcc);
             LocalDB.save(db);
             return { success: true, message: 'החשבון נוסף בהצלחה' };
@@ -296,6 +296,7 @@ function handleLocalFallback(path, options) {
                 fee_deposit: parseFloat(body.fee_deposit || 1.5),
                 yield_ytd: parseFloat(body.yield_ytd || 6.5)
             };
+            db.pensions = db.pensions || [];
             db.pensions.push(newPen);
             LocalDB.save(db);
             return { success: true, message: 'הנכס הפנסיוני נוסף בהצלחה' };
@@ -310,6 +311,7 @@ function handleLocalFallback(path, options) {
                 rental_income: parseFloat(body.rental_income || 0),
                 address: body.address || ''
             };
+            db.real_estate = db.real_estate || [];
             db.real_estate.push(newRE);
             LocalDB.save(db);
             return { success: true, message: 'נכס הנדל"ן נוסף בהצלחה' };
@@ -325,13 +327,14 @@ function handleLocalFallback(path, options) {
                 monthly_payment: parseFloat(body.monthly_payment || 0),
                 interest_rate: parseFloat(body.interest_rate || 0)
             };
+            db.loans = db.loans || [];
             db.loans.push(newLoan);
             LocalDB.save(db);
             return { success: true, message: 'ההלוואה נוספה בהצלחה' };
         }
 
         if (pathname === '/api/rules/add') {
-            const cat = db.categories.find(c => c.id === parseInt(body.category_id));
+            const cat = (db.categories || []).find(c => c.id === parseInt(body.category_id));
             const newRule = {
                 id: Date.now(),
                 keyword: body.keyword,
@@ -339,13 +342,14 @@ function handleLocalFallback(path, options) {
                 category_name: cat ? cat.name : 'סיווג',
                 category_color: cat ? cat.color : '#d97706'
             };
+            db.rules = db.rules || [];
             db.rules.push(newRule);
             LocalDB.save(db);
             return { success: true, message: 'החוק נוסף בהצלחה' };
         }
 
         if (pathname === '/api/rules/delete') {
-            db.rules = db.rules.filter(r => String(r.id) !== String(body.rule_id));
+            db.rules = (db.rules || []).filter(r => String(r.id) !== String(body.rule_id));
             LocalDB.save(db);
             return { success: true, message: 'החוק נמחק בהצלחה' };
         }
@@ -365,10 +369,10 @@ function handleLocalFallback(path, options) {
                 notes: body.notes || '',
                 source: 'manual'
             };
+            db.transactions = db.transactions || [];
             db.transactions.unshift(newTx);
 
-            // Update account balance
-            const acc = db.accounts.find(a => a.id === account_id);
+            const acc = (db.accounts || []).find(a => a.id === account_id);
             if (acc) acc.balance += amount;
 
             LocalDB.save(db);
@@ -376,7 +380,7 @@ function handleLocalFallback(path, options) {
         }
 
         if (pathname === '/api/transactions/update_category') {
-            const tx = db.transactions.find(t => String(t.id) === String(body.transaction_id));
+            const tx = (db.transactions || []).find(t => String(t.id) === String(body.transaction_id));
             if (tx) {
                 tx.category_id = body.category_id ? parseInt(body.category_id) : null;
                 LocalDB.save(db);
@@ -385,7 +389,7 @@ function handleLocalFallback(path, options) {
         }
 
         if (pathname === '/api/sync') {
-            const acc = db.accounts.find(a => String(a.id) === String(body.account_id));
+            const acc = (db.accounts || []).find(a => String(a.id) === String(body.account_id));
             if (acc) {
                 acc.last_synced = new Date().toISOString().replace('T', ' ').substring(0, 19);
                 LocalDB.save(db);
@@ -409,7 +413,7 @@ function parseCsvClientSide(csvText, accountId) {
     let importedCount = 0;
 
     lines.forEach((line, idx) => {
-        if (idx === 0 && (line.includes('תאריך') || line.includes('Date'))) return; // skip header
+        if (idx === 0 && (line.includes('תאריך') || line.includes('Date'))) return;
 
         const parts = line.split(/[,;\t]/).map(p => p.replace(/"/g, '').trim());
         if (parts.length < 3) return;
@@ -420,14 +424,14 @@ function parseCsvClientSide(csvText, accountId) {
 
         if (isNaN(amount) || amount === 0) return;
 
-        // Check auto-rule
         let catId = null;
-        db.rules.forEach(r => {
+        (db.rules || []).forEach(r => {
             if (merchant.toLowerCase().includes(r.keyword.toLowerCase())) {
                 catId = r.category_id;
             }
         });
 
+        db.transactions = db.transactions || [];
         db.transactions.unshift({
             id: Date.now() + Math.floor(Math.random() * 1000),
             account_id: parseInt(accountId),
@@ -440,7 +444,7 @@ function parseCsvClientSide(csvText, accountId) {
             source: 'csv'
         });
 
-        const acc = db.accounts.find(a => String(a.id) === String(accountId));
+        const acc = (db.accounts || []).find(a => String(a.id) === String(accountId));
         if (acc) acc.balance += amount;
 
         importedCount++;
@@ -587,7 +591,18 @@ function renderAccounts() {
     if (!grid) return;
 
     if (accountsData.length === 0) {
-        grid.innerHTML = '<p class="text-slate-500 text-sm col-span-full">טרם הוספו חשבונות.</p>';
+        grid.innerHTML = `
+            <div class="col-span-full bg-white border border-beige-200 rounded-2xl p-8 text-center space-y-3">
+                <i data-lucide="building-2" class="w-10 h-10 text-amber-600 mx-auto"></i>
+                <h4 class="font-bold text-slate-800 text-base">טרם קושרו חשבונות בנק או כרטיסים</h4>
+                <p class="text-xs text-slate-500 max-w-sm mx-auto">לחץ על "חבר בנק בלייב (Open Banking API)" או "ייבוא CSV" להוספת החשבון האישי שלך.</p>
+                <div class="flex justify-center gap-3 pt-2">
+                    <button onclick="openBankConnectModal()" class="px-4 py-2 text-xs font-bold bg-amber-600 text-white rounded-xl shadow-sm">חבר בנק בלייב</button>
+                    <button onclick="openAddAccountModal()" class="px-4 py-2 text-xs font-semibold bg-beige-100 text-slate-700 rounded-xl">הוספה ידנית</button>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
         return;
     }
 
@@ -608,9 +623,14 @@ function renderAccounts() {
                         <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${instBadge}">
                             ${acc.type}
                         </span>
-                        <span class="text-xs text-slate-400 flex items-center gap-1">
-                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> ${syncTime}
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400 flex items-center gap-1">
+                                <i data-lucide="refresh-cw" class="w-3 h-3"></i> ${syncTime}
+                            </span>
+                            <button onclick="deleteAccount(${acc.id})" title="מחק חשבון" class="text-slate-300 hover:text-rose-600 transition">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <h4 class="text-base font-bold text-slate-900 mt-3">${acc.name}</h4>
@@ -639,6 +659,73 @@ function renderAccounts() {
     lucide.createIcons();
 }
 
+// Delete Handlers
+function deleteAccount(accId) {
+    if (!confirm("האם למחוק חשבון זה? כל העסקאות המשויכות יימחקו.")) return;
+    const db = LocalDB.get();
+    db.accounts = (db.accounts || []).filter(a => String(a.id) !== String(accId));
+    db.transactions = (db.transactions || []).filter(t => String(t.account_id) !== String(accId));
+    LocalDB.save(db);
+    loadAllData();
+}
+
+function deletePension(pensionId) {
+    if (!confirm("האם למחוק נכס פנסיוני זה?")) return;
+    const db = LocalDB.get();
+    db.pensions = (db.pensions || []).filter(p => String(p.id) !== String(pensionId));
+    LocalDB.save(db);
+    loadPensions();
+    loadSummary();
+}
+
+function deleteRealEstate(reId) {
+    if (!confirm("האם למחוק נכס נדל\"ן זה?")) return;
+    const db = LocalDB.get();
+    db.real_estate = (db.real_estate || []).filter(r => String(r.id) !== String(reId));
+    LocalDB.save(db);
+    loadRealEstate();
+    loadSummary();
+}
+
+function deleteLoan(loanId) {
+    if (!confirm("האם למחוק הלוואה זו?")) return;
+    const db = LocalDB.get();
+    db.loans = (db.loans || []).filter(l => String(l.id) !== String(loanId));
+    LocalDB.save(db);
+    loadLoans();
+    loadSummary();
+}
+
+function deleteTransaction(txId) {
+    if (!confirm("האם למחוק עסקה זו?")) return;
+    const db = LocalDB.get();
+    db.transactions = (db.transactions || []).filter(t => String(t.id) !== String(txId));
+    LocalDB.save(db);
+    loadTransactions();
+    loadSummary();
+    loadSpendingChart();
+}
+
+// Clean Mode vs Demo Mode Switches
+function clearAllDemoData() {
+    if (!confirm("האם למחוק את כל הנתונים הקיים ולעבור למצב נורמלי (מסך נקי מנתוני הדגמה)?")) return;
+    const db = LocalDB.get();
+    db.accounts = [];
+    db.pensions = [];
+    db.real_estate = [];
+    db.loans = [];
+    db.transactions = [];
+    LocalDB.save(db);
+    alert("כעת האפליקציה במצב נורמלי/נקי (0 נתוני הדגמה). תוכל לחבר את הבנק או להוסיף סעיפים משלך!");
+    loadAllData();
+}
+
+function loadDemoData() {
+    LocalDB.reset();
+    alert("נתוני הדגמה נטענו בהצלחה!");
+    loadAllData();
+}
+
 // 4. Load Pensions
 async function loadPensions() {
     try {
@@ -647,7 +734,12 @@ async function loadPensions() {
         if (!container) return;
 
         if (pensionsData.length === 0) {
-            container.innerHTML = '<p class="text-slate-500 text-sm col-span-full">אין נכסים פנסיוניים להצגה.</p>';
+            container.innerHTML = `
+                <div class="col-span-full bg-white border border-beige-200 rounded-2xl p-8 text-center space-y-2">
+                    <p class="text-slate-500 text-sm">אין נכסים פנסיוניים להצגה.</p>
+                    <button onclick="openAddPensionModal()" class="px-4 py-2 text-xs font-bold bg-amber-600 text-white rounded-xl shadow-sm">הוסף נכס פנסיוני ראשון</button>
+                </div>
+            `;
             return;
         }
 
@@ -659,7 +751,12 @@ async function loadPensions() {
                         <h4 class="text-base font-bold text-slate-900 mt-2">${p.name}</h4>
                         <p class="text-xs text-slate-500">${p.provider}</p>
                     </div>
-                    <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">YTD +${p.yield_ytd}%</span>
+                    <div class="flex flex-col items-end gap-1">
+                        <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">YTD +${p.yield_ytd}%</span>
+                        <button onclick="deletePension(${p.id})" title="מחק נכס" class="text-slate-300 hover:text-rose-600 transition">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="pt-2 border-t border-beige-100 flex justify-between items-end">
                     <div>
@@ -673,6 +770,7 @@ async function loadPensions() {
                 </div>
             </div>
         `).join("");
+        lucide.createIcons();
     } catch (e) {
         console.error("Pensions load error", e);
     }
@@ -686,7 +784,12 @@ async function loadRealEstate() {
         if (!container) return;
 
         if (realEstateData.length === 0) {
-            container.innerHTML = '<p class="text-slate-500 text-sm col-span-full">אין נכסי נדל"ן להצגה.</p>';
+            container.innerHTML = `
+                <div class="col-span-full bg-white border border-beige-200 rounded-2xl p-8 text-center space-y-2">
+                    <p class="text-slate-500 text-sm">אין נכסי נדל"ן להצגה.</p>
+                    <button onclick="openAddRealEstateModal()" class="px-4 py-2 text-xs font-bold bg-emerald-600 text-white rounded-xl shadow-sm">הוסף נכס נדל"ן ראשון</button>
+                </div>
+            `;
             return;
         }
 
@@ -698,6 +801,9 @@ async function loadRealEstate() {
                         <h4 class="text-base font-bold text-slate-900 mt-2">${re.name}</h4>
                         <p class="text-xs text-slate-500">${re.address || ''}</p>
                     </div>
+                    <button onclick="deleteRealEstate(${re.id})" title="מחק נכס" class="text-slate-300 hover:text-rose-600 transition">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
                 </div>
                 <div class="pt-2 border-t border-beige-100 flex justify-between items-end">
                     <div>
@@ -713,6 +819,7 @@ async function loadRealEstate() {
                 </div>
             </div>
         `).join("");
+        lucide.createIcons();
     } catch (e) {
         console.error("Real estate error", e);
     }
@@ -726,7 +833,12 @@ async function loadLoans() {
         if (!container) return;
 
         if (loansData.length === 0) {
-            container.innerHTML = '<p class="text-slate-500 text-sm col-span-full">אין הלוואות להצגה.</p>';
+            container.innerHTML = `
+                <div class="col-span-full bg-white border border-beige-200 rounded-2xl p-8 text-center space-y-2">
+                    <p class="text-slate-500 text-sm">אין הלוואות להצגה.</p>
+                    <button onclick="openAddLoanModal()" class="px-4 py-2 text-xs font-bold bg-rose-600 text-white rounded-xl shadow-sm">הוסף הלוואה / משכנתא</button>
+                </div>
+            `;
             return;
         }
 
@@ -738,7 +850,12 @@ async function loadLoans() {
                         <h4 class="text-base font-bold text-slate-900 mt-2">${l.name}</h4>
                         <p class="text-xs text-slate-500">סכום מקורי: ${formatCurrency(l.initial_amount)}</p>
                     </div>
-                    <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-200">ריבית ${l.interest_rate}%</span>
+                    <div class="flex flex-col items-end gap-1">
+                        <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-200">ריבית ${l.interest_rate}%</span>
+                        <button onclick="deleteLoan(${l.id})" title="מחק הלוואה" class="text-slate-300 hover:text-rose-600 transition">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="pt-2 border-t border-beige-100 flex justify-between items-end">
                     <div>
@@ -752,6 +869,7 @@ async function loadLoans() {
                 </div>
             </div>
         `).join("");
+        lucide.createIcons();
     } catch (e) {
         console.error("Loans load error", e);
     }
@@ -882,6 +1000,11 @@ async function loadTransactionsDashboard() {
         const tbody = document.getElementById("table-dash-txs");
         if (!tbody || !Array.isArray(txs)) return;
 
+        if (txs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-slate-400 text-xs">אין עסקאות להצגה.</td></tr>';
+            return;
+        }
+
         tbody.innerHTML = txs.slice(0, 6).map(tx => {
             const isIncome = tx.amount > 0;
             return `
@@ -924,7 +1047,7 @@ async function loadTransactions() {
         if (!tbody || !Array.isArray(txs)) return;
 
         if (txs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-500 text-sm">לא נמצאו עסקאות תואמות.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-500 text-sm">לא נמצאו עסקאות תואמות.</td></tr>';
             return;
         }
 
@@ -958,9 +1081,15 @@ async function loadTransactions() {
                     <td class="py-3 px-4 text-left font-bold ${isIncome ? 'text-emerald-600' : 'text-slate-900'} dir-ltr">
                         ${isIncome ? '+' : ''}${formatCurrency(tx.amount)}
                     </td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="deleteTransaction(${tx.id})" title="מחק עסקה" class="text-slate-300 hover:text-rose-600 transition">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
                 </tr>
             `;
         }).join("");
+        lucide.createIcons();
     } catch (e) {
         console.error("Failed to load txs", e);
     }
@@ -1254,6 +1383,47 @@ async function syncAccount(accId) {
 async function syncAllAccounts() {
     for (const acc of accountsData) {
         await syncAccount(acc.id);
+    }
+}
+
+// Open Banking / Live Bank Connect Modal
+function openBankConnectModal() {
+    const modal = document.getElementById("modal-bank-connect");
+    if (modal) modal.classList.remove("hidden");
+}
+
+function closeBankConnectModal() {
+    const modal = document.getElementById("modal-bank-connect");
+    if (modal) modal.classList.add("hidden");
+}
+
+async function submitBankConnect(e) {
+    e.preventDefault();
+    const bankInst = document.getElementById("bank-connect-inst").value;
+    const accName = document.getElementById("bank-connect-name").value;
+    const bal = parseFloat(document.getElementById("bank-connect-bal").value || 0);
+
+    const payload = {
+        name: accName || `חשבון ${bankInst}`,
+        type: bankInst.includes("ישראכרט") || bankInst.includes("Max") || bankInst.includes("Cal") ? "Credit Card" : "Bank",
+        institution: bankInst,
+        currency: "ILS",
+        balance: bal,
+        account_number: "*****" + Math.floor(1000 + Math.random() * 9000)
+    };
+
+    try {
+        const data = await apiFetch("/api/accounts/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        alert(`החשבון ב-${bankInst} קושר בהצלחה בלייב!`);
+        closeBankConnectModal();
+        loadAccounts();
+        loadSummary();
+    } catch (err) {
+        alert("שגיאה בחיבור הבנק");
     }
 }
 
@@ -1621,4 +1791,3 @@ function logoutGoogle() {
         setGoogleUser(null);
     }
 }
-

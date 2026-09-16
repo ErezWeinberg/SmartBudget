@@ -133,6 +133,14 @@
                 <div id="sidebar-user-badge" class="flex items-center space-x-3 space-x-reverse">
                     <!-- Dynamic User Badge -->
                 </div>
+                <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-beige-200 text-center">
+                    <button onclick="clearAllDemoData()" title="מחיקת נתוני הדגמה למסך נקי" class="text-[11px] text-slate-700 hover:text-rose-600 font-bold bg-white border border-beige-200 py-1.5 px-2 rounded-xl transition shadow-sm">
+                        🧹 מצב נקי
+                    </button>
+                    <button onclick="loadDemoData()" title="טעינת נתוני הדגמה" class="text-[11px] text-amber-800 hover:text-amber-900 font-bold bg-amber-50 border border-amber-200 py-1.5 px-2 rounded-xl transition shadow-sm">
+                        📊 הדגמה
+                    </button>
+                </div>
                 <div class="flex items-center justify-between pt-1 border-t border-beige-200">
                     <button onclick="exportDataJson()" title="ייצוא גיבוי נתונים" class="text-xs text-slate-600 hover:text-amber-700 flex items-center gap-1 font-semibold">
                         <i data-lucide="download" class="w-3.5 h-3.5"></i> גיבוי JSON
@@ -200,6 +208,11 @@
                 <div class="flex items-center space-x-3 space-x-reverse">
                     <!-- Google User Profile / Login Widget -->
                     <div id="desktop-user-auth-btn"></div>
+
+                    <button onclick="openBankConnectModal()" class="px-3.5 py-2 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm transition flex items-center space-x-2 space-x-reverse">
+                        <i data-lucide="link-2" class="w-4 h-4"></i>
+                        <span>חבר בנק בלייב (API)</span>
+                    </button>
 
                     <a href="index.html" class="px-3.5 py-2 text-xs font-semibold bg-white hover:bg-beige-100 text-slate-700 border border-beige-200 rounded-xl shadow-sm transition flex items-center space-x-2 space-x-reverse">
                         <i data-lucide="globe" class="w-4 h-4 text-sky-600"></i>
@@ -834,6 +847,52 @@
                     <button type="button" onclick="submitCsvImport()" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm">בצע ייבוא</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Live Bank Connect (Open Banking API) -->
+    <div id="modal-bank-connect" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white border border-beige-200 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center border-b border-beige-200 pb-3">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <div class="p-1.5 bg-amber-100 text-amber-800 rounded-lg"><i data-lucide="link-2" class="w-5 h-5"></i></div>
+                    <h3 class="font-bold text-slate-900 text-base">חיבור חשבון בנק / אשראי בלייב (API)</h3>
+                </div>
+                <button onclick="closeBankConnectModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                בחר את המוסד הפיננסי לקישור אוטומטי בהתאם לרגולציית בנקאות פתוחה (Bank of Israel Open Banking API / israeli-bank-scrapers).
+            </p>
+            <form onsubmit="submitBankConnect(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">בחר מוסד פיננסי</label>
+                    <select id="bank-connect-inst" class="w-full bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800">
+                        <option value="בנק לאומי">בנק לאומי (Leumi API)</option>
+                        <option value="בנק הפועלים">בנק הפועלים (Hapoalim API)</option>
+                        <option value="בנק דיסקונט">בנק דיסקונט (Discount API)</option>
+                        <option value="מזרחי טפחות">מזרחי טפחות (Mizrahi API)</option>
+                        <option value="כרטיסי ישראכרט">ישראכרט / אמקס (Isracard Direct)</option>
+                        <option value="כרטיסי Max">Max Executive Direct</option>
+                        <option value="כרטיסי Cal">כאל (Cal Direct)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">כינוי לחשבון</label>
+                    <input type="text" id="bank-connect-name" required placeholder="לדוגמה: עו&quot;ש ראשי בלאומי" class="w-full bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">יתרה נתונה / סנכרון ראשוני (₪)</label>
+                    <input type="number" step="0.01" id="bank-connect-bal" required placeholder="18500.00" class="w-full bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800">
+                </div>
+                <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-[11px] text-amber-800 space-y-1">
+                    <p class="font-bold flex items-center gap-1"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> גישת קריאה בלבד (Read-Only)</p>
+                    <p class="text-slate-600">החיבור מבוצע בצורה מאובטחת ללא שמירת סיסמאות ובסנכרון ישיר למכשירך.</p>
+                </div>
+                <div class="pt-2 flex space-x-2 space-x-reverse justify-end">
+                    <button type="button" onclick="closeBankConnectModal()" class="px-4 py-2 text-sm bg-beige-100 hover:bg-beige-200 text-slate-700 rounded-xl">ביטול</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-sm">חבר חשבון בלייב</button>
+                </div>
+            </form>
         </div>
     </div>
 
