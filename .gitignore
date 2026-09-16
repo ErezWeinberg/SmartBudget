@@ -1,0 +1,11 @@
+# Environments & Caches
+__pycache__/
+*.pyc
+*.pyo
+
+# Database (uncomment if you don't want local DB pushed)
+# finance.db
+
+# OS files
+.DS_Store
+Thumbs.db
