@@ -25,6 +25,8 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
         else:
             if path == "/":
                 self.path = "/index.html"
+            elif path == "/app":
+                self.path = "/app.html"
             super().do_GET()
 
     def do_POST(self):
