@@ -2,16 +2,21 @@
 let accountsData = [];
 let categoriesData = [];
 let rulesData = [];
+let pensionsData = [];
+let realEstateData = [];
+let loansData = [];
+
 let spendingChartInstance = null;
 let netWorthChartInstance = null;
 let cashflowChartInstance = null;
+let retirementChartInstance = null;
+
 let selectedCsvText = "";
 
 document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
     loadAllData();
 
-    // Set today date on add transaction modal
     const today = new Date().toISOString().split('T')[0];
     const dateInput = document.getElementById("modal-tx-date");
     if (dateInput) dateInput.value = today;
@@ -37,9 +42,14 @@ function switchTab(tabName) {
 
     const pageTitleMap = {
         'dashboard': 'לוח בקרה ודוחות',
-        'accounts': 'חשבונות מחוברים',
+        'accounts': 'חשבונות בנק ואשראי',
+        'pensions': 'פנסיה, גמל והשתלמות',
+        'real_estate': 'נדל"ן ונכסים קבועים',
+        'loans': 'הלוואות ומשכנתאות',
         'transactions': 'עסקאות וסיווג',
         'budgets': 'תקציבים חודשיים',
+        'fee_analyzer': 'מנוע תובנות וחיסכון בעמלות',
+        'planning': 'תכנון פיננסי וסימולטור פרישה',
         'rules': 'חוקי סיווג אוטומטיים'
     };
     const titleEl = document.getElementById("page-title");
@@ -49,13 +59,19 @@ function switchTab(tabName) {
 
     if (tabName === 'transactions') loadTransactions();
     if (tabName === 'accounts') renderAccounts();
+    if (tabName === 'pensions') loadPensions();
+    if (tabName === 'real_estate') loadRealEstate();
+    if (tabName === 'loans') loadLoans();
     if (tabName === 'budgets') loadBudgets();
+    if (tabName === 'fee_analyzer') loadFeeAnalyzer();
+    if (tabName === 'planning') calculateRetirement();
     if (tabName === 'rules') loadRules();
 }
 
 // Load All App Data
 async function loadAllData() {
     await Promise.all([
+        loadMarketTicker(),
         loadSummary(),
         loadAccounts(),
         loadCategories(),
@@ -64,6 +80,26 @@ async function loadAllData() {
         loadNetWorthChart(),
         loadCashFlowChart()
     ]);
+}
+
+// Market Ticker
+async function loadMarketTicker() {
+    try {
+        const res = await fetch("/api/market_ticker");
+        const items = await res.json();
+        const container = document.getElementById("market-ticker-container");
+        if (!container) return;
+
+        container.innerHTML = items.map(it => `
+            <span class="flex items-center space-x-1.5 space-x-reverse">
+                <span class="text-slate-400 font-semibold">${it.symbol}:</span>
+                <span class="text-white font-bold">${it.value}</span>
+                <span class="${it.is_up ? 'text-emerald-400' : 'text-rose-400'} text-[11px]">${it.change}</span>
+            </span>
+        `).join('<span class="text-slate-700">•</span>');
+    } catch (e) {
+        console.error("Ticker load error", e);
+    }
 }
 
 // 1. Load KPI Summary
@@ -113,11 +149,6 @@ function renderAccounts() {
     const grid = document.getElementById("accounts-grid");
     if (!grid) return;
 
-    if (accountsData.length === 0) {
-        grid.innerHTML = '<p class="text-slate-500 text-sm">אין חשבונות מחוברים עדיין.</p>';
-        return;
-    }
-
     grid.innerHTML = accountsData.map(acc => {
         const isPositive = acc.balance >= 0;
         const syncTime = acc.last_synced ? acc.last_synced.split(' ')[1] || acc.last_synced : 'טרם סונכרן';
@@ -166,7 +197,204 @@ function renderAccounts() {
     lucide.createIcons();
 }
 
-// 3. Load Categories
+// 3. Load Pensions
+async function loadPensions() {
+    try {
+        const res = await fetch("/api/pensions");
+        pensionsData = await res.json();
+        const container = document.getElementById("pensions-container");
+        if (!container) return;
+
+        container.innerHTML = pensionsData.map(p => `
+            <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm space-y-3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded-full">${p.policy_type}</span>
+                        <h4 class="text-base font-bold text-slate-900 mt-2">${p.name}</h4>
+                        <p class="text-xs text-slate-500">${p.provider}</p>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">YTD +${p.yield_ytd}%</span>
+                </div>
+                <div class="pt-2 border-t border-beige-100 flex justify-between items-end">
+                    <div>
+                        <p class="text-[11px] text-slate-400">צבירה כוללת</p>
+                        <p class="text-2xl font-black text-slate-900">${formatCurrency(p.balance)}</p>
+                    </div>
+                    <div class="text-left text-[11px] text-slate-500">
+                        <p>דמי ניהול מצבור: <strong>${p.fee_acc}%</strong></p>
+                        <p>דמי ניהול הפקדה: <strong>${p.fee_deposit}%</strong></p>
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    } catch (e) {
+        console.error("Pensions load error", e);
+    }
+}
+
+// 4. Load Real Estate
+async function loadRealEstate() {
+    try {
+        const res = await fetch("/api/real_estate");
+        realEstateData = await res.json();
+        const container = document.getElementById("real-estate-container");
+        if (!container) return;
+
+        container.innerHTML = realEstateData.map(re => `
+            <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm space-y-3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full">${re.property_type}</span>
+                        <h4 class="text-base font-bold text-slate-900 mt-2">${re.name}</h4>
+                        <p class="text-xs text-slate-500">${re.address}</p>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-beige-100 flex justify-between items-end">
+                    <div>
+                        <p class="text-[11px] text-slate-400">שווי שוק מוערך</p>
+                        <p class="text-2xl font-black text-slate-900">${formatCurrency(re.market_value)}</p>
+                    </div>
+                    ${re.rental_income > 0 ? `
+                        <div class="text-left">
+                            <p class="text-[11px] text-slate-400">שכירות חודשית</p>
+                            <p class="text-lg font-bold text-emerald-600">+${formatCurrency(re.rental_income)}/חודש</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `).join("");
+    } catch (e) {
+        console.error("Real estate error", e);
+    }
+}
+
+// 5. Load Loans
+async function loadLoans() {
+    try {
+        const res = await fetch("/api/loans");
+        loansData = await res.json();
+        const container = document.getElementById("loans-container");
+        if (!container) return;
+
+        container.innerHTML = loansData.map(l => `
+            <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm space-y-3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-0.5 rounded-full">${l.lender}</span>
+                        <h4 class="text-base font-bold text-slate-900 mt-2">${l.name}</h4>
+                        <p class="text-xs text-slate-500">סכום מקורי: ${formatCurrency(l.initial_amount)}</p>
+                    </div>
+                    <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-200">ריבית ${l.interest_rate}%</span>
+                </div>
+                <div class="pt-2 border-t border-beige-100 flex justify-between items-end">
+                    <div>
+                        <p class="text-[11px] text-slate-400">יתרת חוב נותרת</p>
+                        <p class="text-2xl font-black text-rose-600">-${formatCurrency(l.remaining_balance)}</p>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-[11px] text-slate-400">החזר חודשי</p>
+                        <p class="text-base font-bold text-slate-900">${formatCurrency(l.monthly_payment)}/חודש</p>
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    } catch (e) {
+        console.error("Loans load error", e);
+    }
+}
+
+// 6. Fee Analyzer ("מדד הפראייר")
+async function loadFeeAnalyzer() {
+    try {
+        const res = await fetch("/api/insights/fee_analyzer");
+        const data = await res.json();
+
+        document.getElementById("stat-potential-savings").innerText = `${formatCurrency(data.potential_annual_savings)} / שנה`;
+
+        const container = document.getElementById("fee-insights-container");
+        if (!container) return;
+
+        container.innerHTML = data.insights.map(ins => `
+            <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">${ins.type}</span>
+                        <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">${ins.potential_savings}</span>
+                    </div>
+                    <h4 class="text-base font-bold text-slate-900 mt-3">${ins.title}</h4>
+                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">${ins.description}</p>
+                </div>
+                <button onclick="alert('נציג פיננסי יחזור אליך ליישום החיסכון!')" class="w-full py-2 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm transition">
+                    ממש חיסכון זה
+                </button>
+            </div>
+        `).join("");
+    } catch (e) {
+        console.error("Fee analyzer error", e);
+    }
+}
+
+// 7. Compound Interest Retirement Simulator
+function calculateRetirement() {
+    const monthlyContrib = parseFloat(document.getElementById("sim-monthly-contrib").value || 0);
+    const returnRate = parseFloat(document.getElementById("sim-return-rate").value || 0) / 100;
+    const years = parseInt(document.getElementById("sim-years").value || 0);
+
+    const months = years * 12;
+    const rMonthly = returnRate / 12;
+
+    let totalVal = 0;
+    let totalInvested = 0;
+    const yearlyLabels = [];
+    const yearlyValues = [];
+
+    for (let m = 1; m <= months; m++) {
+        totalVal = (totalVal + monthlyContrib) * (1 + rMonthly);
+        totalInvested += monthlyContrib;
+
+        if (m % 12 === 0) {
+            yearlyLabels.push(`שנה ${m / 12}`);
+            yearlyValues.push(Math.round(totalVal));
+        }
+    }
+
+    const interestGained = Math.max(0, totalVal - totalInvested);
+
+    document.getElementById("sim-future-value").innerText = formatCurrency(totalVal);
+    document.getElementById("sim-interest-gained").innerText = formatCurrency(interestGained);
+
+    const ctx = document.getElementById("chart-retirement-sim");
+    if (!ctx) return;
+
+    if (retirementChartInstance) retirementChartInstance.destroy();
+
+    retirementChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: yearlyLabels,
+            datasets: [{
+                label: 'צמיחת הון צפויה (₪)',
+                data: yearlyValues,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#64748b', font: { family: 'Rubik', size: 10 } } },
+                y: { grid: { color: '#e8ded0' }, ticks: { color: '#64748b', font: { family: 'Rubik', size: 10 } } }
+            }
+        }
+    });
+}
+
+// 8. Load Categories
 async function loadCategories() {
     try {
         const res = await fetch("/api/categories");
@@ -194,7 +422,7 @@ async function loadCategories() {
     }
 }
 
-// 4. Load Dashboard Recent Transactions Table
+// 9. Dashboard Recent Transactions
 async function loadTransactionsDashboard() {
     try {
         const res = await fetch("/api/transactions");
@@ -226,7 +454,7 @@ async function loadTransactionsDashboard() {
     }
 }
 
-// 5. Load Full Transactions Explorer Table
+// 10. Load Full Transactions Explorer Table
 async function loadTransactions() {
     const searchInput = document.getElementById("tx-search-input");
     const accountFilter = document.getElementById("tx-account-filter");
@@ -288,7 +516,7 @@ async function loadTransactions() {
     }
 }
 
-// Update Transaction Category
+// Update Category
 async function updateTxCategory(txId, categoryId) {
     try {
         await fetch("/api/transactions/update_category", {
@@ -303,7 +531,7 @@ async function updateTxCategory(txId, categoryId) {
     }
 }
 
-// 6. Load Net Worth Line Chart
+// Net Worth Line Chart
 async function loadNetWorthChart() {
     try {
         const res = await fetch("/api/charts/networth_history");
@@ -348,7 +576,7 @@ async function loadNetWorthChart() {
     }
 }
 
-// 7. Load Cash Flow Bar Chart
+// Cash Flow Bar Chart
 async function loadCashFlowChart() {
     try {
         const res = await fetch("/api/charts/cashflow");
@@ -402,7 +630,7 @@ async function loadCashFlowChart() {
     }
 }
 
-// 8. Load Spending Doughnut Chart
+// Spending Doughnut Chart
 async function loadSpendingChart() {
     try {
         const res = await fetch("/api/charts/spending");
@@ -445,7 +673,7 @@ async function loadSpendingChart() {
     }
 }
 
-// 9. Load Budgets View
+// Budgets View
 async function loadBudgets() {
     try {
         const res = await fetch("/api/budgets");
@@ -510,7 +738,7 @@ async function loadBudgets() {
     }
 }
 
-// 10. Load & Manage Category Rules
+// Rules Manager
 async function loadRules() {
     try {
         const res = await fetch("/api/rules");
@@ -682,13 +910,6 @@ async function submitCsvImport() {
     } catch (e) {
         alert("שגיאה בייבוא הקובץ");
     }
-}
-
-function openScraperInfoModal() {
-    document.getElementById("modal-scraper").classList.remove("hidden");
-}
-function closeScraperInfoModal() {
-    document.getElementById("modal-scraper").classList.add("hidden");
 }
 
 // Currency Formatter

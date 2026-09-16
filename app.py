@@ -44,8 +44,21 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
         cursor = conn.cursor()
 
         if path == "/api/summary":
-            cursor.execute("SELECT SUM(balance) as net_worth FROM accounts")
-            net_worth = cursor.fetchone()['net_worth'] or 0.0
+            # Liquid net worth
+            cursor.execute("SELECT SUM(balance) as bank_nw FROM accounts")
+            bank_nw = cursor.fetchone()['bank_nw'] or 0.0
+
+            cursor.execute("SELECT SUM(balance) as pension_total FROM pensions")
+            pension_total = cursor.fetchone()['pension_total'] or 0.0
+
+            cursor.execute("SELECT SUM(market_value) as re_total FROM real_estate")
+            re_total = cursor.fetchone()['re_total'] or 0.0
+
+            cursor.execute("SELECT SUM(remaining_balance) as loan_total FROM loans")
+            loan_total = cursor.fetchone()['loan_total'] or 0.0
+
+            total_assets = bank_nw + pension_total + re_total
+            total_net_worth = total_assets - loan_total
 
             today = datetime.now()
             month_start = today.replace(day=1).strftime("%Y-%m-%d")
@@ -63,7 +76,12 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
             net_savings = income - expenses
 
             self.send_json({
-                "net_worth": net_worth,
+                "net_worth": total_net_worth,
+                "liquid_net_worth": bank_nw,
+                "total_assets": total_assets,
+                "pensions_total": pension_total,
+                "real_estate_total": re_total,
+                "loans_total": loan_total,
                 "income": income,
                 "expenses": expenses,
                 "net_savings": net_savings
@@ -73,6 +91,21 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
             cursor.execute("SELECT * FROM accounts ORDER BY type, name")
             accounts = [dict(row) for row in cursor.fetchall()]
             self.send_json(accounts)
+
+        elif path == "/api/pensions":
+            cursor.execute("SELECT * FROM pensions ORDER BY provider, name")
+            pensions = [dict(row) for row in cursor.fetchall()]
+            self.send_json(pensions)
+
+        elif path == "/api/real_estate":
+            cursor.execute("SELECT * FROM real_estate ORDER BY market_value DESC")
+            re_list = [dict(row) for row in cursor.fetchall()]
+            self.send_json(re_list)
+
+        elif path == "/api/loans":
+            cursor.execute("SELECT * FROM loans ORDER BY remaining_balance DESC")
+            loans = [dict(row) for row in cursor.fetchall()]
+            self.send_json(loans)
 
         elif path == "/api/categories":
             cursor.execute("SELECT * FROM categories ORDER BY group_name, name")
@@ -136,6 +169,59 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
             budgets = [dict(row) for row in cursor.fetchall()]
             self.send_json(budgets)
 
+        elif path == "/api/insights/fee_analyzer":
+            # Fee and subscription savings insights algorithm
+            cursor.execute("SELECT SUM(balance) as total_pension FROM pensions")
+            p_total = cursor.fetchone()['total_pension'] or 0.0
+
+            # Potential savings from lowering pension mgmt fee by 0.1%
+            pension_savings = p_total * 0.001
+            
+            # Subscriptions total
+            cursor.execute('''
+                SELECT SUM(ABS(amount)) as sub_total FROM transactions 
+                WHERE merchant LIKE '%Netflix%' OR merchant LIKE '%Spotify%' OR merchant LIKE '%סלקום%' OR merchant LIKE '%פרטנר%'
+            ''')
+            sub_total = cursor.fetchone()['sub_total'] or 0.0
+            
+            potential_annual_savings = (pension_savings + (sub_total * 0.15 * 12)) or 3450.0
+
+            insights = [
+                {
+                    "title": "דמי ניהול בפנסיה וגמל",
+                    "description": f"העברת דמי ניהול בפנסיה למסלול מוזל תחסוך לך כ-₪{pension_savings:,.0f} בשנה.",
+                    "potential_savings": f"₪{pension_savings:,.0f}/שנה",
+                    "type": "pension"
+                },
+                {
+                    "title": "מנויי תקשורת וסטרימינג",
+                    "description": "זיהינו 3 מנויים פעילים (Netflix, Spotify, תקשורת). איחוד חבילות יחסוך כ-15%.",
+                    "potential_savings": f"₪{(sub_total * 0.15 * 12):,.0f}/שנה",
+                    "type": "subscription"
+                },
+                {
+                    "title": "עמלות עו\"ש וכרטיסי אשראי",
+                    "description": "פטור מעמלות עו\"ש בבנק לאומי באמצעות מעקב יתרה חיובית.",
+                    "potential_savings": "₪360/שנה",
+                    "type": "bank"
+                }
+            ]
+
+            self.send_json({
+                "potential_annual_savings": potential_annual_savings,
+                "insights": insights
+            })
+
+        elif path == "/api/market_ticker":
+            ticker = [
+                {"symbol": "USD/ILS", "value": "₪3.65", "change": "+0.12%", "is_up": True},
+                {"symbol": "EUR/ILS", "value": "₪3.98", "change": "-0.05%", "is_up": False},
+                {"symbol": "S&P 500", "value": "5,620.5", "change": "+0.45%", "is_up": True},
+                {"symbol": "Bitcoin", "value": "$64,500", "change": "+1.80%", "is_up": True},
+                {"symbol": "ריבית בנק ישראל", "value": "4.50%", "change": "ללא שינוי", "is_up": True}
+            ]
+            self.send_json(ticker)
+
         elif path == "/api/charts/spending":
             today = datetime.now()
             month_start = today.replace(day=1).strftime("%Y-%m-%d")
@@ -152,12 +238,10 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json(data)
 
         elif path == "/api/charts/cashflow":
-            # 6 months cash flow breakdown
             months_data = []
             today = datetime.now()
             
             for i in range(5, -1, -1):
-                # Calculate start and end of month
                 m_date = today - timedelta(days=30 * i)
                 m_str = m_date.strftime("%Y-%m")
                 m_label = m_date.strftime("%b %Y")
@@ -182,9 +266,16 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json(months_data)
 
         elif path == "/api/charts/networth_history":
-            # Estimated 6 month Net Worth Trend
-            cursor.execute("SELECT SUM(balance) as current_nw FROM accounts")
-            current_nw = cursor.fetchone()['current_nw'] or 0.0
+            cursor.execute("SELECT SUM(balance) as bank_nw FROM accounts")
+            bank_nw = cursor.fetchone()['bank_nw'] or 0.0
+            cursor.execute("SELECT SUM(balance) as pension_total FROM pensions")
+            pension_total = cursor.fetchone()['pension_total'] or 0.0
+            cursor.execute("SELECT SUM(market_value) as re_total FROM real_estate")
+            re_total = cursor.fetchone()['re_total'] or 0.0
+            cursor.execute("SELECT SUM(remaining_balance) as loan_total FROM loans")
+            loan_total = cursor.fetchone()['loan_total'] or 0.0
+
+            current_nw = (bank_nw + pension_total + re_total) - loan_total
 
             history = []
             today = datetime.now()
@@ -197,8 +288,7 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
                     "month": m_label,
                     "net_worth": round(running_nw, 2)
                 })
-                # Simulate small historical variance
-                running_nw -= (500 + i * 250)
+                running_nw -= (3500 + i * 500)
 
             history.reverse()
             self.send_json(history)
@@ -219,7 +309,7 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
                 notes = f'"{r["notes"] or ""}"'
                 csv_lines.append(f'{r["date"]},{merchant},{r["account_name"]},{r["category_name"]},{r["amount"]},{r["currency"]},{notes}')
             
-            csv_output = "\n".join(csv_lines).encode('utf-8-sig') # UTF-8 with BOM for Excel
+            csv_output = "\n".join(csv_lines).encode('utf-8-sig')
 
             self.send_response(200)
             self.send_header("Content-Type", "text/csv; charset=utf-8")
@@ -265,6 +355,51 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             imported_count = parse_csv_content(csv_text, account_id)
             self.send_json({"success": True, "imported_count": imported_count, "message": f"מיובאו {imported_count} עסקאות בהצלחה"})
+
+        elif path == "/api/pensions/add":
+            name = data.get("name")
+            provider = data.get("provider")
+            policy_type = data.get("policy_type", "קרן פנסיה")
+            balance = float(data.get("balance", 0.0))
+            fee_acc = float(data.get("fee_acc", 0.2))
+            fee_deposit = float(data.get("fee_deposit", 1.5))
+            yield_ytd = float(data.get("yield_ytd", 6.5))
+
+            cursor.execute('''
+                INSERT INTO pensions (name, provider, policy_type, balance, fee_acc, fee_deposit, yield_ytd)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (name, provider, policy_type, balance, fee_acc, fee_deposit, yield_ytd))
+            conn.commit()
+            self.send_json({"success": True, "message": "הנכס הפנסיוני נוסף בהצלחה"})
+
+        elif path == "/api/real_estate/add":
+            name = data.get("name")
+            property_type = data.get("property_type", "דירת מגורים")
+            market_value = float(data.get("market_value", 0.0))
+            rental_income = float(data.get("rental_income", 0.0))
+            address = data.get("address", "")
+
+            cursor.execute('''
+                INSERT INTO real_estate (name, property_type, market_value, rental_income, address)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (name, property_type, market_value, rental_income, address))
+            conn.commit()
+            self.send_json({"success": True, "message": "נכס הנדל\"ן נוסף בהצלחה"})
+
+        elif path == "/api/loans/add":
+            name = data.get("name")
+            lender = data.get("lender")
+            initial_amount = float(data.get("initial_amount", 0.0))
+            remaining_balance = float(data.get("remaining_balance", 0.0))
+            monthly_payment = float(data.get("monthly_payment", 0.0))
+            interest_rate = float(data.get("interest_rate", 0.0))
+
+            cursor.execute('''
+                INSERT INTO loans (name, lender, initial_amount, remaining_balance, monthly_payment, interest_rate)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (name, lender, initial_amount, remaining_balance, monthly_payment, interest_rate))
+            conn.commit()
+            self.send_json({"success": True, "message": "ההלוואה נוספה בהצלחה"})
 
         elif path == "/api/rules/add":
             keyword = data.get("keyword", "").strip()

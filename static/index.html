@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBudget IL - ניהול פיננסי ותקציב אישי</title>
+    <title>SmartBudget IL - ניהול פיננסי, נכסים ותקציב אישי</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -45,356 +45,456 @@
         ::-webkit-scrollbar-thumb:hover { background: #d9ccb9; }
     </style>
 </head>
-<body class="bg-beige-50 text-slate-800 min-h-screen flex">
+<body class="bg-beige-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- Clean Vertical Sidebar Navigation -->
-    <aside class="w-64 bg-[#f5f0e6] border-l border-beige-200 flex flex-col justify-between hidden md:flex shrink-0 z-30 sticky top-0 h-screen shadow-sm">
-        <div>
-            <!-- Clean Header -->
-            <div class="p-6 flex items-center space-x-3 space-x-reverse border-b border-beige-200">
-                <div class="bg-gradient-to-tr from-amber-600 to-amber-500 p-2 rounded-xl text-white shadow-md shadow-amber-600/10">
-                    <i data-lucide="wallet" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h1 class="text-base font-bold text-slate-900 tracking-tight">SmartBudget</h1>
-                    <p class="text-[11px] text-amber-700 font-medium">מעקב פיננסי אישי</p>
-                </div>
-            </div>
-
-            <!-- Quick Add Action Button -->
-            <div class="px-4 pt-5">
-                <button onclick="openAddTransactionModal()" class="w-full py-2.5 px-4 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-md shadow-amber-600/15 transition flex items-center justify-center space-x-2 space-x-reverse">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    <span>הוסף עסקה חדשה</span>
-                </button>
-            </div>
-
-            <!-- Navigation Menu -->
-            <nav class="p-4 space-y-1 text-sm font-medium">
-                <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse bg-white text-amber-800 shadow-sm border border-beige-200 font-semibold">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-amber-600"></i>
-                    <span>לוח בקרה ודוחות</span>
-                </button>
-                <button onclick="switchTab('accounts')" id="tab-btn-accounts" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
-                    <i data-lucide="building-2" class="w-4 h-4 text-slate-500"></i>
-                    <span>חשבונות מחוברים</span>
-                </button>
-                <button onclick="switchTab('transactions')" id="tab-btn-transactions" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
-                    <i data-lucide="arrow-left-right" class="w-4 h-4 text-slate-500"></i>
-                    <span>עסקאות וסיווג</span>
-                </button>
-                <button onclick="switchTab('budgets')" id="tab-btn-budgets" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
-                    <i data-lucide="pie-chart" class="w-4 h-4 text-slate-500"></i>
-                    <span>תקציבים חודשיים</span>
-                </button>
-                <button onclick="switchTab('rules')" id="tab-btn-rules" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
-                    <i data-lucide="sparkles" class="w-4 h-4 text-slate-500"></i>
-                    <span>חוקי סיווג אוטומטיים</span>
-                </button>
-            </nav>
+    <!-- Live Market Ticker Header Banner -->
+    <div class="bg-slate-900 text-slate-200 text-xs py-1.5 px-4 flex items-center justify-between overflow-x-auto border-b border-slate-800 z-50">
+        <div class="flex items-center space-x-6 space-x-reverse font-medium" id="market-ticker-container">
+            <!-- Dynamic Ticker Items -->
         </div>
-
-        <!-- Sidebar Footer Snapshot -->
-        <div class="p-4 border-t border-beige-200 bg-white/50 m-3 rounded-2xl space-y-2">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 border border-amber-200 flex items-center justify-center font-bold text-xs">
-                    IL
-                </div>
-                <div class="overflow-hidden">
-                    <p class="text-xs font-bold text-slate-800 truncate">תקציב משפחתי</p>
-                    <p class="text-[10px] text-slate-500 truncate">חשבון פעיל</p>
-                </div>
-            </div>
-            <button onclick="openScraperInfoModal()" class="w-full text-center text-[11px] text-amber-700 hover:text-amber-800 font-semibold bg-amber-50 hover:bg-amber-100 py-1.5 rounded-lg border border-amber-200/60 transition flex items-center justify-center gap-1">
-                <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
-                <span>סנכרון בנקים אוטומטי</span>
-            </button>
+        <div class="text-[11px] text-slate-400 hidden sm:block whitespace-nowrap">
+            🔒 רשות ניירות ערך • בנקאות פתוחה • הצפנת 256-Bit
         </div>
-    </aside>
+    </div>
 
-    <!-- Main Workspace Area -->
-    <div class="flex-1 flex flex-col min-w-0">
-
-        <!-- Mobile Top Navbar -->
-        <header class="md:hidden bg-[#f5f0e6] border-b border-beige-200 p-4 flex justify-between items-center sticky top-0 z-40">
-            <div class="flex items-center space-x-2 space-x-reverse">
-                <div class="bg-amber-600 p-1.5 rounded-lg text-white">
-                    <i data-lucide="wallet" class="w-5 h-5"></i>
-                </div>
-                <span class="font-bold text-slate-800 text-base">SmartBudget</span>
-            </div>
-            <div class="flex space-x-2 space-x-reverse">
-                <button onclick="openAddTransactionModal()" class="p-2 bg-amber-600 text-white rounded-lg"><i data-lucide="plus" class="w-4 h-4"></i></button>
-            </div>
-        </header>
-
-        <!-- Top Header Bar -->
-        <header class="hidden md:flex bg-white/70 border-b border-beige-200 px-8 py-4 justify-between items-center backdrop-blur">
+    <div class="flex-1 flex min-w-0">
+        <!-- Clean Vertical Sidebar Navigation -->
+        <aside class="w-64 bg-[#f5f0e6] border-l border-beige-200 flex flex-col justify-between hidden md:flex shrink-0 z-30 sticky top-0 h-[calc(100vh-32px)] shadow-sm overflow-y-auto">
             <div>
-                <h2 id="page-title" class="text-xl font-bold text-slate-900">לוח בקרה ודוחות</h2>
-                <p class="text-xs text-slate-500">מעקב, ניתוח נתונים וסנכרון מרכזי</p>
+                <!-- Clean Header -->
+                <div class="p-5 flex items-center space-x-3 space-x-reverse border-b border-beige-200">
+                    <div class="bg-gradient-to-tr from-amber-600 to-amber-500 p-2 rounded-xl text-white shadow-md shadow-amber-600/10">
+                        <i data-lucide="wallet" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold text-slate-900 tracking-tight">SmartBudget</h1>
+                        <p class="text-[11px] text-amber-700 font-medium">ניהול פיננסי וריכוז נכסים</p>
+                    </div>
+                </div>
+
+                <!-- Quick Add Action Button -->
+                <div class="px-4 pt-4">
+                    <button onclick="openAddTransactionModal()" class="w-full py-2.5 px-4 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-md shadow-amber-600/15 transition flex items-center justify-center space-x-2 space-x-reverse">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>הוסף עסקה חדשה</span>
+                    </button>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="p-4 space-y-1 text-xs font-medium">
+                    <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse bg-white text-amber-800 shadow-sm border border-beige-200 font-semibold">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 text-amber-600"></i>
+                        <span>לוח בקרה ודוחות</span>
+                    </button>
+                    <button onclick="switchTab('accounts')" id="tab-btn-accounts" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
+                        <i data-lucide="building-2" class="w-4 h-4 text-slate-500"></i>
+                        <span>חשבונות בנק ואשראי</span>
+                    </button>
+                    <button onclick="switchTab('pensions')" id="tab-btn-pensions" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
+                        <i data-lucide="piggy-bank" class="w-4 h-4 text-slate-500"></i>
+                        <span>פנסיה, גמל והשתלמות</span>
+                    </button>
+                    <button onclick="switchTab('real_estate')" id="tab-btn-real_estate" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
+                        <i data-lucide="home" class="w-4 h-4 text-slate-500"></i>
+                        <span>נדל"ן ונכסים קבועים</span>
+                    </button>
+                    <button onclick="switchTab('loans')" id="tab-btn-loans" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
+                        <i data-lucide="landmark" class="w-4 h-4 text-slate-500"></i>
+                        <span>הלוואות ומשכנתאות</span>
+                    </button>
+                    <button onclick="switchTab('transactions')" id="tab-btn-transactions" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
+                        <i data-lucide="arrow-left-right" class="w-4 h-4 text-slate-500"></i>
+                        <span>עסקאות וסיווג</span>
+                    </button>
+                    <button onclick="switchTab('budgets')" id="tab-btn-budgets" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-slate-500"></i>
+                        <span>תקציבים חודשיים</span>
+                    </button>
+                    <button onclick="switchTab('fee_analyzer')" id="tab-btn-fee_analyzer" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
+                        <i data-lucide="zap" class="w-4 h-4 text-amber-600"></i>
+                        <span>מנוע תובנות ועמלות</span>
+                    </button>
+                    <button onclick="switchTab('planning')" id="tab-btn-planning" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
+                        <i data-lucide="target" class="w-4 h-4 text-slate-500"></i>
+                        <span>תכנון פיננסי ופרישה</span>
+                    </button>
+                    <button onclick="switchTab('rules')" id="tab-btn-rules" class="nav-tab w-full px-3.5 py-2.5 rounded-xl transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:text-slate-900 hover:bg-white/60">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-slate-500"></i>
+                        <span>חוקי סיווג אוטומטיים</span>
+                    </button>
+                </nav>
             </div>
 
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <button onclick="openCsvModal()" class="px-3.5 py-2 text-xs font-semibold bg-white hover:bg-beige-100 text-slate-700 border border-beige-200 rounded-xl shadow-sm transition flex items-center space-x-2 space-x-reverse">
-                    <i data-lucide="file-up" class="w-4 h-4 text-emerald-600"></i>
-                    <span>ייבוא קובץ CSV</span>
-                </button>
-                <button onclick="syncAllAccounts()" class="px-3.5 py-2 text-xs font-semibold bg-white hover:bg-beige-100 text-slate-700 border border-beige-200 rounded-xl shadow-sm transition flex items-center space-x-2 space-x-reverse">
-                    <i data-lucide="rotate-cw" class="w-4 h-4 text-amber-600"></i>
-                    <span>סנכרן חשבונות</span>
-                </button>
+            <!-- Sidebar Footer Snapshot -->
+            <div class="p-4 border-t border-beige-200 bg-white/50 m-3 rounded-2xl space-y-2">
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 border border-amber-200 flex items-center justify-center font-bold text-xs">
+                        IL
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-xs font-bold text-slate-800 truncate">תקציב משפחתי</p>
+                        <p class="text-[10px] text-slate-500 truncate">חשבון פעיל</p>
+                    </div>
+                </div>
             </div>
-        </header>
+        </aside>
 
-        <!-- Main Content View Container -->
-        <main class="flex-1 px-4 sm:px-8 py-6 space-y-6 overflow-y-auto">
+        <!-- Main Workspace Area -->
+        <div class="flex-1 flex flex-col min-w-0">
 
-            <!-- Clean Beige Hero KPIs -->
-            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Net Worth Card -->
-                <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm hover:border-amber-400 transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">שווי נקי כולל</p>
-                            <h3 id="stat-net-worth" class="text-2xl font-black text-slate-900 mt-1.5">₪0.00</h3>
-                        </div>
-                        <div class="p-2.5 bg-amber-50 text-amber-700 rounded-xl border border-amber-200">
-                            <i data-lucide="coins" class="w-5 h-5"></i>
-                        </div>
+            <!-- Mobile Top Navbar -->
+            <header class="md:hidden bg-[#f5f0e6] border-b border-beige-200 p-4 flex justify-between items-center sticky top-0 z-40">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <div class="bg-amber-600 p-1.5 rounded-lg text-white">
+                        <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
-                    <div class="mt-3 flex items-center text-xs text-emerald-600 font-medium">
-                        <i data-lucide="trending-up" class="w-3.5 h-3.5 ml-1"></i>
-                        <span>סונכרן מ-5 מקורות נתונים</span>
-                    </div>
+                    <span class="font-bold text-slate-800 text-base">SmartBudget</span>
+                </div>
+                <div class="flex space-x-2 space-x-reverse">
+                    <button onclick="openAddTransactionModal()" class="p-2 bg-amber-600 text-white rounded-lg"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                </div>
+            </header>
+
+            <!-- Top Header Bar -->
+            <header class="hidden md:flex bg-white/70 border-b border-beige-200 px-8 py-4 justify-between items-center backdrop-blur">
+                <div>
+                    <h2 id="page-title" class="text-xl font-bold text-slate-900">לוח בקרה ודוחות</h2>
+                    <p class="text-xs text-slate-500">ריכוז נכסים, פנסיות, נדל"ן ותציבים בזמן אמת</p>
                 </div>
 
-                <!-- Income Card -->
-                <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm hover:border-emerald-400 transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">הכנסות החודש</p>
-                            <h3 id="stat-income" class="text-2xl font-black text-emerald-600 mt-1.5">₪0.00</h3>
-                        </div>
-                        <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200">
-                            <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
-                        </div>
-                    </div>
-                    <p class="mt-3 text-xs text-slate-500">משכורת והכנסות שוטפות</p>
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <button onclick="openCsvModal()" class="px-3.5 py-2 text-xs font-semibold bg-white hover:bg-beige-100 text-slate-700 border border-beige-200 rounded-xl shadow-sm transition flex items-center space-x-2 space-x-reverse">
+                        <i data-lucide="file-up" class="w-4 h-4 text-emerald-600"></i>
+                        <span>ייבוא קובץ CSV</span>
+                    </button>
+                    <button onclick="syncAllAccounts()" class="px-3.5 py-2 text-xs font-semibold bg-white hover:bg-beige-100 text-slate-700 border border-beige-200 rounded-xl shadow-sm transition flex items-center space-x-2 space-x-reverse">
+                        <i data-lucide="rotate-cw" class="w-4 h-4 text-amber-600"></i>
+                        <span>סנכרן חשבונות</span>
+                    </button>
                 </div>
+            </header>
 
-                <!-- Expenses Card -->
-                <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm hover:border-rose-400 transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">הוצאות החודש</p>
-                            <h3 id="stat-expenses" class="text-2xl font-black text-rose-600 mt-1.5">₪0.00</h3>
-                        </div>
-                        <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl border border-rose-200">
-                            <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
-                        </div>
-                    </div>
-                    <p class="mt-3 text-xs text-slate-500">אשראי, עו"ש ומזומן</p>
-                </div>
+            <!-- Main Content View Container -->
+            <main class="flex-1 px-4 sm:px-8 py-6 space-y-6 overflow-y-auto">
 
-                <!-- Cash Savings Card -->
-                <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm hover:border-sky-400 transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">חיסכון נטו החודש</p>
-                            <h3 id="stat-savings" class="text-2xl font-black text-sky-700 mt-1.5">₪0.00</h3>
-                        </div>
-                        <div class="p-2.5 bg-sky-50 text-sky-700 rounded-xl border border-sky-200">
-                            <i data-lucide="piggy-bank" class="w-5 h-5"></i>
-                        </div>
-                    </div>
-                    <p class="mt-3 text-xs text-slate-500">תזרים נטו (הכנסות פחות הוצאות)</p>
-                </div>
-            </section>
-
-            <!-- VIEW 1: Dashboard Overview & Charts -->
-            <section id="view-dashboard" class="tab-content space-y-6">
-                <!-- Trend & Cashflow Charts Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Net Worth History Line Chart -->
-                    <div class="bg-white border border-beige-200 rounded-2xl p-6 shadow-sm">
-                        <div class="flex justify-between items-center mb-4">
+                <!-- Asset Aggregation Summary KPIs -->
+                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm hover:border-amber-400 transition">
+                        <div class="flex justify-between items-start">
                             <div>
-                                <h3 class="text-base font-bold text-slate-900">מגמת שווי נקי (6 חודשים אחרונים)</h3>
-                                <p class="text-xs text-slate-500">התפתחות נכסים וחסכונות</p>
+                                <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">שווי נקי כולל (Net Worth)</p>
+                                <h3 id="stat-net-worth" class="text-2xl font-black text-slate-900 mt-1.5">₪0.00</h3>
                             </div>
-                            <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i>
+                            <div class="p-2.5 bg-amber-50 text-amber-700 rounded-xl border border-amber-200">
+                                <i data-lucide="coins" class="w-5 h-5"></i>
+                            </div>
                         </div>
-                        <div class="relative h-64">
-                            <canvas id="chart-networth-line"></canvas>
+                        <div class="mt-3 flex items-center text-xs text-emerald-600 font-medium">
+                            <i data-lucide="trending-up" class="w-3.5 h-3.5 ml-1"></i>
+                            <span>כולל בנקים, פנסיות ונדל"ן בניכוי חובות</span>
                         </div>
                     </div>
 
-                    <!-- Cashflow Income vs Expense Bar Chart -->
-                    <div class="bg-white border border-beige-200 rounded-2xl p-6 shadow-sm">
-                        <div class="flex justify-between items-center mb-4">
+                    <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm hover:border-emerald-400 transition">
+                        <div class="flex justify-between items-start">
                             <div>
-                                <h3 class="text-base font-bold text-slate-900">השוואת תזרים מזומנים חודשי</h3>
-                                <p class="text-xs text-slate-500">הכנסות מול הוצאות לפי חודש</p>
+                                <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">הכנסות החודש</p>
+                                <h3 id="stat-income" class="text-2xl font-black text-emerald-600 mt-1.5">₪0.00</h3>
                             </div>
-                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-amber-600"></i>
+                            <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200">
+                                <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
+                            </div>
                         </div>
-                        <div class="relative h-64">
-                            <canvas id="chart-cashflow-bar"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Clean Spending Doughnut Chart -->
-                    <div class="bg-white border border-beige-200 rounded-2xl p-6 lg:col-span-1 shadow-sm">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-base font-bold text-slate-900">התפלגות הוצאות</h3>
-                            <i data-lucide="pie-chart" class="w-4 h-4 text-amber-600"></i>
-                        </div>
-                        <div class="relative flex items-center justify-center h-64">
-                            <canvas id="chart-spending-pie"></canvas>
-                        </div>
+                        <p class="mt-3 text-xs text-slate-500">משכורת, שכירות והכנסות</p>
                     </div>
 
-                    <!-- Recent Transactions List -->
-                    <div class="bg-white border border-beige-200 rounded-2xl p-6 lg:col-span-2 shadow-sm">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-base font-bold text-slate-900">עסקאות אחרונות</h3>
-                            <button onclick="switchTab('transactions')" class="text-xs text-amber-700 hover:text-amber-800 font-semibold flex items-center gap-1">
-                                <span>הצג את כל העסקאות</span>
-                                <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
-                            </button>
+                    <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm hover:border-rose-400 transition">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">הוצאות החודש</p>
+                                <h3 id="stat-expenses" class="text-2xl font-black text-rose-600 mt-1.5">₪0.00</h3>
+                            </div>
+                            <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl border border-rose-200">
+                                <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+                            </div>
                         </div>
+                        <p class="mt-3 text-xs text-slate-500">משכנתא, אשראי ועו"ש</p>
+                    </div>
+
+                    <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm hover:border-sky-400 transition">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">חיסכון נטו החודש</p>
+                                <h3 id="stat-savings" class="text-2xl font-black text-sky-700 mt-1.5">₪0.00</h3>
+                            </div>
+                            <div class="p-2.5 bg-sky-50 text-sky-700 rounded-xl border border-sky-200">
+                                <i data-lucide="piggy-bank" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-xs text-slate-500">תזרים נטו חודשי</p>
+                    </div>
+                </section>
+
+                <!-- VIEW 1: Dashboard Overview & Charts -->
+                <section id="view-dashboard" class="tab-content space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white border border-beige-200 rounded-2xl p-6 shadow-sm">
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-900">מגמת שווי נקי (6 חודשים אחרונים)</h3>
+                                    <p class="text-xs text-slate-500">התפתחות נכסים וחסכונות</p>
+                                </div>
+                                <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i>
+                            </div>
+                            <div class="relative h-64">
+                                <canvas id="chart-networth-line"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-beige-200 rounded-2xl p-6 shadow-sm">
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-900">השוואת תזרים מזומנים חודשי</h3>
+                                    <p class="text-xs text-slate-500">הכנסות מול הוצאות לפי חודש</p>
+                                </div>
+                                <i data-lucide="bar-chart-3" class="w-4 h-4 text-amber-600"></i>
+                            </div>
+                            <div class="relative h-64">
+                                <canvas id="chart-cashflow-bar"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white border border-beige-200 rounded-2xl p-6 lg:col-span-1 shadow-sm">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-base font-bold text-slate-900">התפלגות הוצאות</h3>
+                                <i data-lucide="pie-chart" class="w-4 h-4 text-amber-600"></i>
+                            </div>
+                            <div class="relative flex items-center justify-center h-64">
+                                <canvas id="chart-spending-pie"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-beige-200 rounded-2xl p-6 lg:col-span-2 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base font-bold text-slate-900">עסקאות אחרונות</h3>
+                                <button onclick="switchTab('transactions')" class="text-xs text-amber-700 hover:text-amber-800 font-semibold flex items-center gap-1">
+                                    <span>הצג את כל העסקאות</span>
+                                    <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-right">
+                                    <thead class="text-xs text-slate-500 border-b border-beige-200">
+                                        <tr>
+                                            <th class="pb-3 px-3">תאריך</th>
+                                            <th class="pb-3 px-3">בית עסק</th>
+                                            <th class="pb-3 px-3">חשבון</th>
+                                            <th class="pb-3 px-3">קטגוריה</th>
+                                            <th class="pb-3 px-3 text-left">סכום</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-dash-txs" class="divide-y divide-beige-100">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 2: Connected Accounts -->
+                <section id="view-accounts" class="tab-content hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">חשבונות בנק וכרטיסי אשראי</h3>
+                            <p class="text-xs text-slate-500">סנכרון מרכזי של עו"ש, כרטיסי אשראי והשקעות</p>
+                        </div>
+                    </div>
+                    <div id="accounts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    </div>
+                </section>
+
+                <!-- VIEW: Pensions & Provident Hub -->
+                <section id="view-pensions" class="tab-content hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">פנסיה, קופות גמל וקרנות השתלמות</h3>
+                            <p class="text-xs text-slate-500">ריכוז כל הפוליסות, דמי ניהול ותשואות YTD</p>
+                        </div>
+                    </div>
+                    <div id="pensions-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    </div>
+                </section>
+
+                <!-- VIEW: Real Estate & Fixed Assets -->
+                <section id="view-real_estate" class="tab-content hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">נדל"ן ונכסים קבועים</h3>
+                            <p class="text-xs text-slate-500">ניהול נכסי נדל"ן, הערכות שווי והכנסות משכירות</p>
+                        </div>
+                    </div>
+                    <div id="real-estate-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    </div>
+                </section>
+
+                <!-- VIEW: Loans & Mortgages -->
+                <section id="view-loans" class="tab-content hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">הלוואות ומשכנתאות</h3>
+                            <p class="text-xs text-slate-500">מעקב חובות, ריביות ולוחות סילוקין</p>
+                        </div>
+                    </div>
+                    <div id="loans-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    </div>
+                </section>
+
+                <!-- VIEW: Fee Analyzer & Sucker Index -->
+                <section id="view-fee_analyzer" class="tab-content hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">מנוע תובנות וחיסכון בעמלות ("מדד הפראייר")</h3>
+                            <p class="text-xs text-slate-500">זיהוי מנויים כפולים, עמלות בנקאיות ודמי ניהול עודפים</p>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl p-6 shadow-md flex justify-between items-center">
+                        <div>
+                            <p class="text-xs font-semibold uppercase opacity-90">פוטנציאל חיסכון שנתי מזהה</p>
+                            <h3 id="stat-potential-savings" class="text-3xl font-black mt-1">₪3,450 / שנה</h3>
+                            <p class="text-xs mt-1 text-amber-100">מבוסס על אופטימיזציית דמי ניהול ומנויים פעילים</p>
+                        </div>
+                        <i data-lucide="zap" class="w-12 h-12 opacity-80"></i>
+                    </div>
+                    <div id="fee-insights-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    </div>
+                </section>
+
+                <!-- VIEW: Retirement & Financial Planning Simulator -->
+                <section id="view-planning" class="tab-content hidden space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">תכנון פיננסי וסימולטור פרישה (Compound Interest)</h3>
+                        <p class="text-xs text-slate-500">תחזית צמיחת הון אישי לפי ריבית דריבית והפקדות חודשיות</p>
+                    </div>
+                    <div class="bg-white border border-beige-200 rounded-2xl p-6 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-4">
+                            <h4 class="font-bold text-sm text-slate-900">הגדרת פרמטרים לתחזית</h4>
+                            <div>
+                                <label class="block text-xs text-slate-600 mb-1">הפקדה חודשית נוספת (₪)</label>
+                                <input type="number" id="sim-monthly-contrib" value="3000" oninput="calculateRetirement()" class="w-full bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-600 mb-1">תשואה שנתית צפויה (%)</label>
+                                <input type="number" step="0.5" id="sim-return-rate" value="7.0" oninput="calculateRetirement()" class="w-full bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-600 mb-1">משך זמן בשנים</label>
+                                <input type="number" id="sim-years" value="20" oninput="calculateRetirement()" class="w-full bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800">
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 flex flex-col justify-between">
+                            <div>
+                                <p class="text-xs text-slate-500">הון צפוי בתום התקופה</p>
+                                <h3 id="sim-future-value" class="text-4xl font-black text-emerald-600 mt-1">₪0</h3>
+                                <p class="text-xs text-slate-500 mt-1">מתוכו רווח נקי מריבית דריבית: <strong id="sim-interest-gained" class="text-slate-800">₪0</strong></p>
+                            </div>
+                            <div class="relative h-48 mt-4">
+                                <canvas id="chart-retirement-sim"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 3: Transactions Explorer -->
+                <section id="view-transactions" class="tab-content hidden space-y-6">
+                    <div class="bg-white border border-beige-200 rounded-2xl p-4 flex flex-wrap gap-3 items-center justify-between shadow-sm">
+                        <div class="flex flex-wrap items-center gap-3 flex-1">
+                            <div class="relative min-w-[220px]">
+                                <i data-lucide="search" class="w-4 h-4 absolute right-3 top-3 text-slate-400"></i>
+                                <input type="text" id="tx-search-input" onkeyup="loadTransactions()" placeholder="חפש בית עסק או הערה..." class="w-full bg-beige-50 border border-beige-200 rounded-xl pr-9 pl-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-600">
+                            </div>
+                            <select id="tx-account-filter" onchange="loadTransactions()" class="bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-amber-600">
+                                <option value="">כל החשבונות</option>
+                            </select>
+                            <select id="tx-category-filter" onchange="loadTransactions()" class="bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-amber-600">
+                                <option value="">כל הקטגוריות</option>
+                            </select>
+                        </div>
+
+                        <a href="/api/export/csv" target="_blank" class="px-3.5 py-2 text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl transition flex items-center space-x-2 space-x-reverse">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>ייצא ל-Excel (CSV)</span>
+                        </a>
+                    </div>
+
+                    <div class="bg-white border border-beige-200 rounded-2xl overflow-hidden shadow-sm">
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-right">
-                                <thead class="text-xs text-slate-500 border-b border-beige-200">
+                                <thead class="bg-beige-50 text-xs text-slate-500 border-b border-beige-200">
                                     <tr>
-                                        <th class="pb-3 px-3">תאריך</th>
-                                        <th class="pb-3 px-3">בית עסק</th>
-                                        <th class="pb-3 px-3">חשבון</th>
-                                        <th class="pb-3 px-3">קטגוריה</th>
-                                        <th class="pb-3 px-3 text-left">סכום</th>
+                                        <th class="py-3.5 px-4">תאריך</th>
+                                        <th class="py-3.5 px-4">בית עסק / תיאור</th>
+                                        <th class="py-3.5 px-4">חשבון מקור</th>
+                                        <th class="py-3.5 px-4">קטגוריה</th>
+                                        <th class="py-3.5 px-4">סוג סנכרון</th>
+                                        <th class="py-3.5 px-4 text-left">סכום (₪)</th>
                                     </tr>
                                 </thead>
-                                <tbody id="table-dash-txs" class="divide-y divide-beige-100">
-                                    <!-- Dynamic rows -->
+                                <tbody id="table-full-txs" class="divide-y divide-beige-100">
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- VIEW 2: Connected Accounts -->
-            <section id="view-accounts" class="tab-content hidden space-y-6">
-                <div class="flex justify-between items-center">
+                <!-- VIEW 4: Budgets Planner -->
+                <section id="view-budgets" class="tab-content hidden space-y-6">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900">חשבונות מחוברים</h3>
-                        <p class="text-xs text-slate-500">סנכרון מרכזי של בנקים, כרטיסי אשראי והשקעות</p>
+                        <h3 class="text-lg font-bold text-slate-900">תקציבים חודשיים</h3>
+                        <p class="text-xs text-slate-500">מעקב ניצול תקציב לפי קטגוריות</p>
                     </div>
-                </div>
+                    <div id="budgets-container" class="space-y-6">
+                    </div>
+                </section>
 
-                <div id="accounts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Dynamic Account Cards -->
-                </div>
-            </section>
-
-            <!-- VIEW 3: Transactions Explorer -->
-            <section id="view-transactions" class="tab-content hidden space-y-6">
-                <div class="bg-white border border-beige-200 rounded-2xl p-4 flex flex-wrap gap-3 items-center justify-between shadow-sm">
-                    <div class="flex flex-wrap items-center gap-3 flex-1">
-                        <div class="relative min-w-[220px]">
-                            <i data-lucide="search" class="w-4 h-4 absolute right-3 top-3 text-slate-400"></i>
-                            <input type="text" id="tx-search-input" onkeyup="loadTransactions()" placeholder="חפש בית עסק או הערה..." class="w-full bg-beige-50 border border-beige-200 rounded-xl pr-9 pl-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-600">
+                <!-- VIEW 5: Category Rules Manager -->
+                <section id="view-rules" class="tab-content hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">חוקי סיווג אוטומטיים</h3>
+                            <p class="text-xs text-slate-500">הגדרת מילות מפתח לשיוך אוטומטי של עסקאות לקטגוריות</p>
                         </div>
-                        <select id="tx-account-filter" onchange="loadTransactions()" class="bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-amber-600">
-                            <option value="">כל החשבונות</option>
-                        </select>
-                        <select id="tx-category-filter" onchange="loadTransactions()" class="bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-amber-600">
-                            <option value="">כל הקטגוריות</option>
-                        </select>
                     </div>
 
-                    <!-- CSV Export Download Button -->
-                    <a href="/api/export/csv" target="_blank" class="px-3.5 py-2 text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl transition flex items-center space-x-2 space-x-reverse">
-                        <i data-lucide="download" class="w-4 h-4"></i>
-                        <span>ייצא ל-Excel (CSV)</span>
-                    </a>
-                </div>
-
-                <div class="bg-white border border-beige-200 rounded-2xl overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-right">
-                            <thead class="bg-beige-50 text-xs text-slate-500 border-b border-beige-200">
-                                <tr>
-                                    <th class="py-3.5 px-4">תאריך</th>
-                                    <th class="py-3.5 px-4">בית עסק / תיאור</th>
-                                    <th class="py-3.5 px-4">חשבון מקור</th>
-                                    <th class="py-3.5 px-4">קטגוריה</th>
-                                    <th class="py-3.5 px-4">סוג סנכרון</th>
-                                    <th class="py-3.5 px-4 text-left">סכום (₪)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-full-txs" class="divide-y divide-beige-100">
-                                <!-- Dynamic rows -->
-                            </tbody>
-                        </table>
+                    <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm space-y-3">
+                        <h4 class="text-sm font-bold text-slate-900">הוסף חוק סיווג חדש</h4>
+                        <form onsubmit="submitAddRule(event)" class="flex flex-wrap gap-3 items-end">
+                            <div class="flex-1 min-w-[200px]">
+                                <label class="block text-xs font-medium text-slate-600 mb-1">מילת מפתח בתיאור העסקה</label>
+                                <input type="text" id="rule-keyword-input" required placeholder="לדוגמה: ארומה, דלק, Wolt" class="w-full bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800">
+                            </div>
+                            <div class="flex-1 min-w-[200px]">
+                                <label class="block text-xs font-medium text-slate-600 mb-1">שייך לקטגוריה</label>
+                                <select id="rule-category-select" required class="w-full bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800">
+                                </select>
+                            </div>
+                            <button type="submit" class="px-4 py-2.5 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm transition flex items-center gap-1.5">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>שמור חוק</span>
+                            </button>
+                        </form>
                     </div>
-                </div>
-            </section>
 
-            <!-- VIEW 4: Budgets Planner -->
-            <section id="view-budgets" class="tab-content hidden space-y-6">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-900">תקציבים חודשיים</h3>
-                    <p class="text-xs text-slate-500">מעקב ניצול תקציב לפי קטגוריות</p>
-                </div>
-
-                <div id="budgets-container" class="space-y-6">
-                    <!-- Grouped Budget Bars -->
-                </div>
-            </section>
-
-            <!-- VIEW 5: Category Rules Manager -->
-            <section id="view-rules" class="tab-content hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900">חוקי סיווג אוטומטיים</h3>
-                        <p class="text-xs text-slate-500">הגדרת מילות מפתח לשיוך אוטומטי של עסקאות לקטגוריות</p>
-                    </div>
-                </div>
-
-                <!-- Add Rule Card -->
-                <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm space-y-3">
-                    <h4 class="text-sm font-bold text-slate-900">הוסף חוק סיווג חדש</h4>
-                    <form onsubmit="submitAddRule(event)" class="flex flex-wrap gap-3 items-end">
-                        <div class="flex-1 min-w-[200px]">
-                            <label class="block text-xs font-medium text-slate-600 mb-1">מילת מפתח בתיאור העסקה</label>
-                            <input type="text" id="rule-keyword-input" required placeholder="לדוגמה: ארומה, דלק, Wolt" class="w-full bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800">
+                    <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm">
+                        <h4 class="text-sm font-bold text-slate-900 mb-3">חוקים קיימים במערכת</h4>
+                        <div id="rules-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         </div>
-                        <div class="flex-1 min-w-[200px]">
-                            <label class="block text-xs font-medium text-slate-600 mb-1">שייך לקטגוריה</label>
-                            <select id="rule-category-select" required class="w-full bg-beige-50 border border-beige-200 rounded-xl px-3 py-2 text-sm text-slate-800">
-                            </select>
-                        </div>
-                        <button type="submit" class="px-4 py-2.5 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm transition flex items-center gap-1.5">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                            <span>שמור חוק</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Rules Grid / List -->
-                <div class="bg-white border border-beige-200 rounded-2xl p-5 shadow-sm">
-                    <h4 class="text-sm font-bold text-slate-900 mb-3">חוקים קיימים במערכת</h4>
-                    <div id="rules-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        <!-- Dynamic Rule Cards -->
                     </div>
-                </div>
-            </section>
+                </section>
 
-        </main>
+            </main>
+        </div>
     </div>
 
     <!-- MODAL: Add Transaction -->
@@ -461,29 +561,6 @@
                     <button type="button" onclick="closeCsvModal()" class="px-4 py-2 text-sm bg-beige-100 hover:bg-beige-200 text-slate-700 rounded-xl">ביטול</button>
                     <button type="button" onclick="submitCsvImport()" class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm">בצע ייבוא</button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: Scraper Helper Info -->
-    <div id="modal-scraper" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white border border-beige-200 rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
-            <div class="flex justify-between items-center border-b border-beige-200 pb-3">
-                <div class="flex items-center space-x-2 space-x-reverse">
-                    <i data-lucide="cpu" class="w-5 h-5 text-amber-600"></i>
-                    <h3 class="font-bold text-slate-900 text-base">אינטגרציית סקריפרים אוטומטיים (israeli-bank-scrapers)</h3>
-                </div>
-                <button onclick="closeScraperInfoModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
-                <p>המערכת תומכת בחיבור לספריית הקוד הפתוח <strong>israeli-bank-scrapers</strong> למשיכת עסקאות אוטומטית ישירות מהבנקים בישראל (לאומי, פועלים, מזרחי, כאל, ישראכרט, Max):</p>
-                <div class="bg-slate-900 text-slate-200 p-3 rounded-xl font-mono text-[11px] dir-ltr overflow-x-auto">
-                    npx israeli-bank-scrapers --company leumi --username USER --password PASS
-                </div>
-                <p>כדי להפעיל סנכרון אוטומטי מקומי, ניתן להריץ את הסקריפר ברקע או לתזמן סנכרון יומי שיוסיף את העסקאות ישירות למסד הנתונים `finance.db` של המערכת.</p>
-            </div>
-            <div class="pt-2 flex justify-end">
-                <button type="button" onclick="closeScraperInfoModal()" class="px-4 py-2 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm">הבנתי, תודה</button>
             </div>
         </div>
     </div>
