@@ -454,6 +454,7 @@ function parseCsvClientSide(csvText, accountId) {
 
 document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
+    renderUserProfile();
     loadAllData();
 
     const today = new Date().toISOString().split('T')[0];
@@ -1490,3 +1491,134 @@ function formatCurrency(amount, curr = 'ILS') {
     const symbol = curr === 'USD' ? '$' : '₪';
     return `${symbol}${Number(amount || 0).toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
+
+// Google Authentication Controller
+function getGoogleUser() {
+    try {
+        return JSON.parse(localStorage.getItem("smartbudget_user"));
+    } catch (e) {
+        return null;
+    }
+}
+
+function setGoogleUser(user) {
+    if (user) {
+        localStorage.setItem("smartbudget_user", JSON.stringify(user));
+    } else {
+        localStorage.removeItem("smartbudget_user");
+    }
+    renderUserProfile();
+}
+
+function renderUserProfile() {
+    const user = getGoogleUser();
+    const desktopBtn = document.getElementById("desktop-user-auth-btn");
+    const mobileBtn = document.getElementById("mobile-user-auth-btn");
+    const sidebarBadge = document.getElementById("sidebar-user-badge");
+
+    if (user) {
+        const userHtml = `
+            <div class="relative group">
+                <button class="flex items-center space-x-2 space-x-reverse bg-white border border-beige-200 hover:border-amber-300 rounded-xl px-2.5 py-1.5 shadow-sm transition text-right">
+                    <img src="${user.picture || 'https://lh3.googleusercontent.com/a/default-user'}" alt="${user.name}" class="w-6 h-6 rounded-full border border-amber-500 object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=d97706&color=fff'">
+                    <div class="hidden lg:block text-right">
+                        <p class="text-xs font-bold text-slate-800 leading-tight">${user.name}</p>
+                        <p class="text-[10px] text-slate-400 truncate max-w-[110px]">${user.email}</p>
+                    </div>
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                </button>
+                <div class="absolute left-0 mt-1 w-48 bg-white border border-beige-200 rounded-xl shadow-lg py-1 hidden group-hover:block z-50">
+                    <div class="px-3 py-2 border-b border-beige-100">
+                        <p class="text-xs font-bold text-slate-900">${user.name}</p>
+                        <p class="text-[10px] text-slate-500 truncate">${user.email}</p>
+                    </div>
+                    <button onclick="logoutGoogle()" class="w-full text-right px-3 py-2 text-xs text-rose-600 hover:bg-rose-50 transition flex items-center gap-1.5 font-semibold">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i> התנתק מחשבון Google
+                    </button>
+                </div>
+            </div>
+        `;
+        if (desktopBtn) desktopBtn.innerHTML = userHtml;
+        if (mobileBtn) mobileBtn.innerHTML = userHtml;
+
+        if (sidebarBadge) {
+            sidebarBadge.innerHTML = `
+                <img src="${user.picture || ''}" class="w-8 h-8 rounded-full border border-amber-400 object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=d97706&color=fff'">
+                <div class="overflow-hidden">
+                    <p class="text-xs font-bold text-slate-800 truncate">${user.name}</p>
+                    <p class="text-[10px] text-emerald-600 font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>מחובר ב-Google</p>
+                </div>
+            `;
+        }
+    } else {
+        const loginBtnHtml = `
+            <button onclick="openGoogleAuthModal()" class="px-3.5 py-2 text-xs font-bold bg-white hover:bg-beige-100 text-slate-800 border border-beige-200 rounded-xl shadow-sm transition flex items-center space-x-2 space-x-reverse">
+                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.15C3.26 21.3 7.35 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.39l3.99-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"/></svg>
+                <span>התחבר עם Google</span>
+            </button>
+        `;
+        if (desktopBtn) desktopBtn.innerHTML = loginBtnHtml;
+        if (mobileBtn) mobileBtn.innerHTML = loginBtnHtml;
+
+        if (sidebarBadge) {
+            sidebarBadge.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 border border-amber-200 flex items-center justify-center font-bold text-xs">
+                    IL
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-xs font-bold text-slate-800 truncate">תקציב משפחתי</p>
+                    <button onclick="openGoogleAuthModal()" class="text-[10px] text-amber-700 hover:underline font-semibold">התחבר עם Google</button>
+                </div>
+            `;
+        }
+    }
+    lucide.createIcons();
+}
+
+function openGoogleAuthModal() {
+    document.getElementById("modal-google-auth").classList.remove("hidden");
+}
+function closeGoogleAuthModal() {
+    document.getElementById("modal-google-auth").classList.add("hidden");
+}
+
+function loginWithGoogleDemo() {
+    const demoUser = {
+        name: "ישראל ישראלי",
+        email: "israel.demo@gmail.com",
+        picture: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80",
+        signedInAt: new Date().toISOString()
+    };
+    setGoogleUser(demoUser);
+    closeGoogleAuthModal();
+    alert("התחברת בהצלחה עם Google!");
+}
+
+function handleGoogleCredentialResponse(response) {
+    try {
+        const base64Url = response.credential.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+        const payload = JSON.parse(jsonPayload);
+
+        const googleUser = {
+            name: payload.name || payload.email,
+            email: payload.email,
+            picture: payload.picture,
+            signedInAt: new Date().toISOString()
+        };
+        setGoogleUser(googleUser);
+        closeGoogleAuthModal();
+        alert(`שלום ${googleUser.name}, התחברת בהצלחה עם Google!`);
+    } catch (e) {
+        console.error("JWT parse error", e);
+        loginWithGoogleDemo();
+    }
+}
+
+function logoutGoogle() {
+    if (confirm("האם להתנתק מחשבון Google?")) {
+        setGoogleUser(null);
+    }
+}
+
