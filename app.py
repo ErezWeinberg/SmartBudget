@@ -356,6 +356,22 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
             imported_count = parse_csv_content(csv_text, account_id)
             self.send_json({"success": True, "imported_count": imported_count, "message": f"מיובאו {imported_count} עסקאות בהצלחה"})
 
+        elif path == "/api/accounts/add":
+            name = data.get("name")
+            acc_type = data.get("type", "Bank")
+            institution = data.get("institution", "בנק")
+            currency = data.get("currency", "ILS")
+            balance = float(data.get("balance", 0.0))
+            account_number = data.get("account_number", "")
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            cursor.execute('''
+                INSERT INTO accounts (name, type, institution, currency, balance, account_number, last_synced)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (name, acc_type, institution, currency, balance, account_number, now_str))
+            conn.commit()
+            self.send_json({"success": True, "message": "החשבון נוסף בהצלחה"})
+
         elif path == "/api/pensions/add":
             name = data.get("name")
             provider = data.get("provider")
